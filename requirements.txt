@@ -1,0 +1,12 @@
+six>=1.15.0
+idna>=2.10
+chardet>=3.0.4
+certifi>=2020.6.20
+protobuf>=3.13.0
+pywin32>=228
+urllib3>=1.25.10
+requests>=2.24.0
+mysql-connector-python>=8.0.21
+orjson>=3.3.1
+dpath>=2.0.1
+clickhouse_cityhash>=1.0.2.3
