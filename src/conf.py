@@ -6,9 +6,20 @@ from lootnika import (
     os, sys,
     homeDir,
     traceback)
-import publish
 
-__all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dir']
+
+__all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dirs']
+cfg = {
+    'diskUsage': {},
+    'rest': {
+        'userRole': {
+            'admin': {'users': 'AdminClients', 'actions': ''},
+            'query': {'users': 'QueryClients', 'actions': ''}
+        }
+    },
+    'exporters': {},
+    'schedule': {}
+}
 default = {
     "server": {
         "Host": "0.0.0.0",
@@ -27,9 +38,9 @@ default = {
         "pathWatch": "C:\\",
         "critFreeGb": "10"
     },
-    "output": {
-        "format": "raw",
-        "publisher": "raw2text",
+    "export": {
+        "type": "lootnika_text",
+        "format": "json",
         "batchSize": "100",
         "failPath": "send_failed/",
     },
@@ -59,18 +70,6 @@ default = {
         "LogMaxSizeKbs": "10240",
         "logMaxFiles": "5"
     }
-}
-cfg = {
-    'diskUsage': {},
-    'rest': {
-        'userRole': {
-            'admin': {'users': 'AdminClients', 'actions': ''},
-            'query': {'users': 'QueryClients', 'actions': ''}
-        }
-    },
-    'output': {},
-    'publishers': {},
-    'schedule': {}
 }
 
 
@@ -115,7 +114,7 @@ def open_config() -> configparser.RawConfigParser:
     return config
 
 
-def create_dir(paths: list) -> None:
+def create_dirs(paths: iter) -> None:
     for i in paths:
         if not os.path.exists(i):
             try:
@@ -147,7 +146,7 @@ def write_section(section: str, params: dict) -> bool:
 def check_sections(config: configparser.RawConfigParser):
     edited = False
     try:
-        for k in ['server', 'service', 'diskusage', 'output', 'schedule', 'logging']:
+        for k in ['server', 'service', 'diskusage', 'schedule', 'logging']:
             if not config.has_section(k):
                 print(f"ERROR: no section {k}")
                 edited = write_section(k, default[k])
@@ -286,29 +285,29 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             time.sleep(3)
             raise SystemExit(1)
 
-    def verify_output():
-        try:
-            # TODO verify publish & format
-            cfg['output']['publisher'] = config.get("output", "publisher")
-            cfg['output']['format'] = config.get("output", "format")
-            cfg['output']['batchSize'] = config.getint("output", "BatchSize")
-
-            if config.has_option('output', 'failPath'):
-                cfg['output']['failPath'] = config.get("output", "failPath").replace("\\", "/", -1)
-                if ":" not in cfg['output']['failPath']:
-                    cfg['output']['failPath'] = f"{homeDir}{cfg['output']['failPath']}"
-                if not cfg['output']['failPath'].endswith("/"):
-                    cfg['output']['failPath'] += "/"
-            else:
-                cfg['output']['failPath'] = f"{homeDir}{default['output']['failPath']}"
-
-            os.makedirs(cfg['output']['failPath'])
-        except FileExistsError:
-            pass
-        except Exception as e:
-            log.error(f"incorrect parameters in [output]: {e}")
-            time.sleep(3)
-            raise SystemExit(1)
+    # def verify_output():
+    #     try:
+    #         # TODO verify publish & format
+    #         cfg['output']['exporter'] = config.get("output", "exporter")
+    #         cfg['output']['format'] = config.get("output", "format")
+    #         cfg['output']['batchSize'] = config.getint("output", "BatchSize")
+    #
+    #         if config.has_option('output', 'failPath'):
+    #             cfg['output']['failPath'] = config.get("output", "failPath").replace("\\", "/", -1)
+    #             if ":" not in cfg['output']['failPath']:
+    #                 cfg['output']['failPath'] = f"{homeDir}{cfg['output']['failPath']}"
+    #             if not cfg['output']['failPath'].endswith("/"):
+    #                 cfg['output']['failPath'] += "/"
+    #         else:
+    #             cfg['output']['failPath'] = f"{homeDir}{default['output']['failPath']}"
+    #
+    #         os.makedirs(cfg['output']['failPath'])
+    #     except FileExistsError:
+    #         pass
+    #     except Exception as e:
+    #         log.error(f"incorrect parameters in [output]: {e}")
+    #         time.sleep(3)
+    #         raise SystemExit(1)
 
     def verify_scheduler():
         def get_task_params(ls: list) -> list:
@@ -361,6 +360,19 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                     time.sleep(3)
                     raise SystemExit(1)
 
+                # TODO сборщик сам должен проверять свою секцию
+                """
+                независимо от сборщика должны быть:
+                    - exporter
+                    - overwritetaskstore
+                """
+
+                # if config.has_option(taskName, "exporter"):
+                #     args['exporter'] = config.get(taskName, "exporter")
+                    # args['exporter'] = load_exporter(config.get(taskName, "exporter"))
+                # else:
+                args['exporter'] = 'export'
+
                 taskList.append((taskName, args))
             return taskList
 
@@ -404,48 +416,54 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
 
     verify_rest()
     verify_diskUsage()
-    verify_output()
+    # verify_output()
     verify_scheduler()
     return cfg
 
 
 # TODO many endpoints
-def load_publisher(cfg: dict) -> dict:
+def load_exporter(name: str) -> dict:
+    """
+
+    :param name: exporter section. Default is "export"
+    :return:
+    """
+    log.debug(f"Enabled exporter: {name}")
     try:
-        pubName = config.get('output', 'publisher')
-        pubType = config.get(cfg['output']['publisher'], 'type')
+        expType = config.get(name, 'type')
 
-        module = __import__(f'publish.{pubType}', globals=globals(), locals=locals(),  fromlist=['Publisher'])
-        Publisher = getattr(module, 'Publisher')
-        publisher = Publisher(pubName)
+        module = __import__(f'exports.{expType}.exporter', globals=globals(), locals=locals(),  fromlist=['Exporter'])
+        Exporter = getattr(module, 'Exporter')
+        exporter = Exporter(name)
 
+        # нужен если указан в задаче, а его нет
         try:
-            if not config.has_section(pubName):
-                log.warning(f'Create new section {pubName}')
+            if not config.has_section(name):
+                log.warning(f'Create new section {name}')
 
-                if write_section(pubName, publisher.defaultCfg):
+                if write_section(name, exporter.defaultCfg):
                     print("WARNING: created new sections in config file. Restart me to apply them")
                     raise SystemExit(1)
         except Exception as e:
-            log.error(f"Fail to load default publisher {pubName}: {e}")
+            log.error(f"Fail to load default exporter {name}: {e}")
 
-        cfg['publishers'][pubName] = publisher
-        publisher.load_config(config)
+        cfg['exporters'][name] = exporter
+        exporter.load_config(config)
         return cfg
     except ModuleNotFoundError as e:
-        log.error(f"No publisher {pubName}. Check if a module exists in directory publish")
+        log.fatal(f"No exporter {name}. Check if a module exists in directory publish")
         raise SystemExit(1)
     except AttributeError as e:
-        log.error(f'Wrong publisher: {e}')
+        log.fatal(f'Wrong exporter: {e}')
         raise SystemExit(1)
     except Exception as e:
-        log.error(f'Fail load publisher: {e}')
+        log.fatal(f'Fail load exporter: {e}')
         raise SystemExit(1)
 
 
 if __name__ != '__main__':
     try:
-        create_dir([f"{homeDir}{'logs'}", f"{homeDir}{'temp'}"])
+        create_dirs([f"{homeDir}{'logs'}", f"{homeDir}{'temp'}"])
     except Exception as e:
         print(e)
         time.sleep(3)
@@ -455,4 +473,11 @@ if __name__ != '__main__':
     check_sections(config)
     log, logRest, console = create_logger(config)
     cfg = verify_config(config, log)
-    cfg = load_publisher(cfg)
+
+    # TODO tasks can set export
+    # see get_task_params
+    if config.has_section('export'):
+        cfg = load_exporter('export')
+    else:
+        log.fatal("Individual exports not supported in this version")
+        raise SystemExit(-1)

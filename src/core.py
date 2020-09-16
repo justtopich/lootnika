@@ -31,7 +31,7 @@ def shutdown_me(signal, frame):
         time.sleep(1)
         while True:
             time.sleep(0.3)
-            sout.print(selfControl.myThreads, 'red')
+            # sout.print(selfControl.myThreads, 'red')
             if not bool(selfControl.myThreads):
                 break
 

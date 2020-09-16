@@ -19,7 +19,7 @@ class Collector:
         self.task = task
         self.ts = None
 
-        # [total ,seen, new, differ, delete, task error, send error, last doc id]
+        # [total ,seen, new, differ, delete, task error, export error, last doc id]
         self.syncCount = [-1, 0, 0, 0, 0, 0, 0, '']
         self.log = create_task_logger(taskName, console)
 
@@ -27,7 +27,7 @@ class Collector:
         # Документы из очереди он сразу добавляет в adds, которые отправляет по достижении лимита
         # (BatchSize) или если в очереди будет команда send. Отдельный поток и очередь позволяют
         # сразу формировать adds по ходу накопления документов, а не копить\таскасть список.
-        self.factory = Factory(taskName, cfg['output'], self.log, cfg['publishers'][cfg['output']['publisher']])
+        self.factory = Factory(taskName, self.log, cfg['exporters'][task['exporter']], self.syncCount)
 
     def is_terminated(self) -> bool:
         if scheduler.status == 'pause':
@@ -256,11 +256,14 @@ class Collector:
                 check = self.ts.check_document(doc.reference, doc.get_hash())
                 if check == 1:
                     self.syncCount[3] += 1
+                    self.factory.put(doc)
                 elif check == 2:
                     self.syncCount[2] += 1
-                else:
+                    self.factory.put(doc)
+                elif check == -1:
                     self.syncCount[5] += 1
-                self.factory.put(doc)
+                else:
+                    pass
 
                 # засчитывать документ только после его получения
                 self.syncCount[1] += 1
@@ -292,7 +295,7 @@ class Collector:
                 f"{tab}Differ: {self.syncCount[3]}"
                 f"{tab}Deleted: {self.syncCount[4]}"
                 f"{tab}Task errors: {self.syncCount[5]}"
-                f"{tab}Output errors: {self.syncCount[6]}")
+                f"{tab}Export errors: {self.syncCount[6]}")
 
             if self.syncCount[5] != 0:
                 self.log.warning('Task done with some errors. Check logs')

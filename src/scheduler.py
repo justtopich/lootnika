@@ -2,7 +2,7 @@ from lootnika import (
     time, dtime,
     Timer,
     traceback)
-from conf import log, cfg
+from conf import log
 from core import selfControl, shutdown_me, ds
 
 
@@ -39,8 +39,8 @@ class Scheduler:
         # super(Scheduler, self).__init__()
         self.taskList = taskList
         self.taskCycles = taskCycles
-        self.repeatMin = repeatMin      # время повторов
-        self.startTime = startTime   # времени старта заданий
+        self.repeatMin = repeatMin  # время повторов
+        self.startTime = startTime  # времени старта заданий
         self.status = 'ready'
         self.workers = []
         self.curTask = ''
@@ -74,7 +74,7 @@ class Scheduler:
                 log.error(e)
                 raise Exception(e)
 
-    #TODO get count of factory fails
+    # TODO get count of factory fails
     def check_point(self, taskId: str, syncCount: list, status: str = 'run') -> None:
         """
         Task running progress updating. Statistics are saving in lootnika datastore.
@@ -90,11 +90,10 @@ class Scheduler:
             "UPDATE tasks SET end_time='{}', status='{}' ,count_total={}, count_seen={},"
             " count_new={}, count_differ={}, count_delete={}, count_task_error={},"
             "count_send_error={}, last_doc_id='{}' WHERE id={}"
-            .format(dtime.datetime.now().strftime("%d.%m.%Y %H:%M:%S"), status,
-                syncCount[0], syncCount[1], syncCount[2], syncCount[3],
-                syncCount[4], syncCount[5], syncCount[6], syncCount[7],
-                taskId
-            )
+                .format(dtime.datetime.now().strftime("%d.%m.%Y %H:%M:%S"), status,
+                        syncCount[0], syncCount[1], syncCount[2], syncCount[3],
+                        syncCount[4], syncCount[5], syncCount[6], syncCount[7],
+                        taskId)
         )
         if resMem != 0:
             raise Exception(f'Failed to create an entry in taskstore: {resMem}')
@@ -131,7 +130,7 @@ class Scheduler:
 
             for i in self.taskList:
                 # в случае отмены не продолжать
-                if self.status == 'cancel':   # далее уже сам воркер следит даже если пауза
+                if self.status == 'cancel':  # далее уже сам воркер следит даже если пауза
                     self.curTask = ''
                     self.status = 'ready'
                     return
@@ -156,7 +155,7 @@ class Scheduler:
             if self.startTime is None:
                 log.info('Tasks cycle done. Task replays are over')
             else:
-                log.info(f'Tasks cycle done. Tasks cycles left: {self.taskCycles}')
+                log.info(f'Tasks cycle done. Left: {self.taskCycles}')
         return
 
     # вернёт конкретное задание или пустой кортеж
@@ -201,7 +200,7 @@ class Scheduler:
                 if self.taskCycles > 0:
                     self.status = 'wait'
                     if self.isTaskTime():
-                        ht = timer_named('work_manager', 0, self.work_manager,)
+                        ht = timer_named('work_manager', 0, self.work_manager, )
                         ht.start()
                         self.workers.append(ht)
 
@@ -211,7 +210,7 @@ class Scheduler:
             else:
                 if self.taskCycles > 0:
                     if self.isTaskTime():
-                        ht = timer_named('work_manager', 0, self.work_manager,)
+                        ht = timer_named('work_manager', 0, self.work_manager, )
                         ht.start()
                         self.workers.append(ht)
 
@@ -331,6 +330,7 @@ def first_start_calc(cfg: dict, onStart=True):
     :param onStart:
     :return:
     """
+
     def delay_calc(taskStartTime):
         startTime = dtime.datetime.now()
         if taskStartTime.lower() != 'now':

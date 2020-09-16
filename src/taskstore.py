@@ -6,6 +6,8 @@ from lootnika import (
     cityhash,
     dpath,
     traceback,
+    time,
+    uuid4,
     os)
 
 
@@ -88,10 +90,10 @@ class TaskStore:
         :param docHash: cityHash64 hash from Document.get_hash()
         :return:
             operation status that can be:
-                 0 - not changed
-                 1 - changed (differ)
-                 2 - new
-                -1 - error
+                 0 - not changed\n
+                 1 - changed (differ)\n
+                 2 - new\n
+                -1 - error\n
         """
         status = -1
         self.log.info(f'Check object {ref}')
@@ -149,9 +151,12 @@ class Document:
         self.reference = reference
         self.raw = {
             'reference': '',
+            'uuid': str(uuid4()),
             'taskname': taskName,
-            'fields': fields
-        }
+            'create_dtm': int(time.time()),
+            'exporter': '',
+            'format': '',
+            'fields': fields}
 
         for i in fields:
             self.reference = self.reference.replace(f'@{i}@', str(fields[i]))

@@ -19,9 +19,9 @@
 from __init__ import *
 
 
-devMod = False
-# devMod = True
-# sys.argv.append('run')  # only debug mode
+# devMod = False
+devMod = True
+sys.argv.append('run')  # only debug mode
 
 
 def svc_init():

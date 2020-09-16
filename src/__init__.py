@@ -13,6 +13,7 @@ import socket
 from threading import Thread, Timer, enumerate as get_threads
 from subprocess import Popen, PIPE, STDOUT, DEVNULL
 from secrets import token_hex
+from uuid import uuid4
 import traceback
 from queue import Queue
 # from urllib.parse import quote, unquote
@@ -31,7 +32,7 @@ from mysql.connector import errorcode
 from clickhouse_cityhash import cityhash
 
 
-__version__ = "0.1.1.0"
+__version__ = "0.2.0-dev.0"
 # Windows запускает модули exe из папки пользователя
 # Папка должна определяться только исполняемым файлом
 keys = os.path.split(os.path.abspath(os.path.join(os.curdir, __file__)))
@@ -68,9 +69,9 @@ class Sout:
 sout = Sout()
 __all__ = [
     'os', 'sys', 'servicemanager', 'traceback', 'RotatingFileHandler',
-    'dtime', 'time', 'configparser', 're', 'logging', 'STDOUT',
+    'dtime', 'time', 'configparser', 're', 'logging', 'STDOUT', 'Queue',
     'shutil', 'signal', 'Thread', 'Timer', 'Popen', 'PIPE', 'DEVNULL',
-    'get_threads', 'token_hex', 'Queue', 'copy', 'Logger', 'socket',
+    'get_threads', 'token_hex', 'uuid4', 'copy', 'Logger', 'socket',
 
     'win32event', 'win32service', 'win32serviceutil', 'win32event', 'sqlite3',
     'requests', 'mySqlCntr', 'errorcode', 'dpath', 'orjson', 'cityhash',

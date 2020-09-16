@@ -1,12 +1,11 @@
 bin/
-src/*.log
+**/*.log
 # src/*.cfg #
 src/*.txt
 src/*.db
-src/__pycache__/
+**/__pycache__/
 src/Lootnika/
 src/send_failed/
 src/outgoing/
 src/temp/
 src/logs/
-src/publish/__pycache__/

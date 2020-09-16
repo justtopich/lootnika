@@ -1,4 +1,5 @@
 from lootnika import (
+    homeDir,
     os,
     dtime, time,
     Thread,
@@ -7,28 +8,28 @@ from lootnika import (
     token_hex,
     Logger)
 from taskstore import Document
-from publish.lootnika_text import Publisher, Converter
 
 
 class Factory(Thread):
-    def __init__(self, taskName: str, cfg: dict, taskLog: Logger, publisher: Publisher):
+    def __init__(self, taskName: str, taskLog: Logger, exporter: "Exporter", syncCount: list):
         """
-        :param taskName: create subdir in SendFail path
-        :param cfg: output section
+        :param taskName: required for creating subdir in SendFail path
+        :param syncCount: collector syncCount. Required for count up exporting fails
         """
         super(Factory, self).__init__()
         self.log = taskLog
+        self.syncCount = syncCount
         self.name = 'Factory'
         self.log.debug("Starting Factory thread")
 
-        self.status = 'work'
-        self.failed = 0
-        self.parcelSize = 0
-        self.publisher = publisher
-        self.converter = Converter()
         self.docs = Queue()
-        self.batchSize = cfg['batchSize']
-        self.failPath = f"{cfg['failPath']}{dtime.date.today().strftime('%Y%m%d')}/{taskName}/"
+        self.status = 'work'
+        self.parcelSize = 0
+        self.exporter = exporter
+        self.converter = exporter._converter
+        self.batchSize = exporter.cfg['batchSize']
+        # TODO оставить за экспортёром
+        self.failPath = f"{homeDir}{exporter.cfg['failPath']}{dtime.date.today().strftime('%Y%m%d')}/{taskName}/"
         self.start()
 
     def run(self):
@@ -42,14 +43,16 @@ class Factory(Thread):
                     break
                 elif doc == '--send--':
                     if self.parcelSize == 0: continue
-                    parcel = self.converter.export()
+                    parcel = self.converter.get()
                     self.send(parcel)
                     self.parcelSize = 0
                 else:
                     self.parcelSize += 1
+                    doc.raw['exporter'] = self.exporter.type
+                    doc.raw['format'] = self.converter.type
                     self.converter.add(doc)
                     if self.parcelSize >= self.batchSize:
-                        parcel = self.converter.export()
+                        parcel = self.converter.get()
                         self.send(parcel)
                         self.parcelSize = 0
             except Exception as e:
@@ -71,11 +74,11 @@ class Factory(Thread):
         fail = True
 
         try:
-            self.publisher.publish(parcel)
+            self.exporter.export(parcel)
             fail = False
         except Exception as e:
             e = traceback.format_exc()
-            self.log.error("Failed to publish: %s" % str(e).split('rror')[-1])
+            self.log.error("Failed to export: %s" % str(e).split('rror')[-1])
 
         if fail:
             self.save_fail(bytearray(parcel, encoding=self.converter.encoding), self.failPath)
@@ -86,7 +89,7 @@ class Factory(Thread):
         ...
 
     def save_fail(self, parcel: bytearray, failPath: str):
-        self.failed += 1
+        self.syncCount[6] += 1
         try:
             os.makedirs(failPath)
         except:
