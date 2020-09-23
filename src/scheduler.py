@@ -1,11 +1,13 @@
 from lootnika import (
-    time, dtime,
+    time, dtime, sout,
     Timer,
     traceback)
-from conf import log
+from conf import log, console, create_task_logger
 from core import selfControl, shutdown_me, ds
+from taskstore import TaskStore
 
 
+# TODO причесать или пояснить всё
 class Scheduler:
     """
     Следит за командами управления заданиями и вывзывает их исполнителей
@@ -36,15 +38,14 @@ class Scheduler:
     """
 
     def __init__(self, taskList, taskCycles, repeatMin, startTime):
-        # super(Scheduler, self).__init__()
         self.taskList = taskList
         self.taskCycles = taskCycles
-        self.repeatMin = repeatMin  # время повторов
-        self.startTime = startTime  # времени старта заданий
+        self.repeatMin = repeatMin
+        self.startTime = startTime
         self.status = 'ready'
         self.workers = []
         self.curTask = ''
-        self.LootPicker = None
+        self.Picker = None
         self.cmd = ''
 
     def _mark_task_start(self, taskName: str) -> int:
@@ -75,6 +76,7 @@ class Scheduler:
                 raise Exception(e)
 
     # TODO get count of factory fails
+    # сейчас сборщик передаёт факте свой список и там она отмечает
     def check_point(self, taskId: str, syncCount: list, status: str = 'run') -> None:
         """
         Task running progress updating. Statistics are saving in lootnika datastore.
@@ -98,12 +100,19 @@ class Scheduler:
         if resMem != 0:
             raise Exception(f'Failed to create an entry in taskstore: {resMem}')
 
-    # вызывает исполнителя
-    def work_manager(self, task='', lastTask='', cmd=False):
-        # проверка выполняется тут, т.к. запускается по таймеру и статус может поменяться
-        self.update_startTime()
-        log.warning(f'Previous task is still running. Next start will be at {self.startTime}')
+
+    def _work_manager(self, taskName='', lastTask='', cmd=False):
+        """
+        Обёртка исполнителя задания (Picker). Работает как таймер чтобы
+        отложить запуск до заданного времени. Потому проверка статуса
+        планировщика так же выполняется здесь.
+
+        NOTE: сейчас планировщик сам проверяет время старта и запускает
+        задание сразу
+        """
+        self._update_startTime()
         if not (self.status == 'ready' or self.status == 'wait'):
+            log.warning(f'Previous task is still running. Next start will be at {self.startTime}')
             return
 
         self.status = 'work'  # он должен работатьт только при ready
@@ -112,43 +121,29 @@ class Scheduler:
         # if self.taskCycles==0: self.startTime = None
 
         # task может быть только при cmd=True
-        if task != '':
-            self.curTask = task[0]
-            taskId = self._mark_task_start(task[0])
-            try:
-                lootPicker = self.LootPicker(taskId, task[0], task[1])
-                lootPicker.run()
-            except Exception as e:
-                if log.level == 10:
-                    e = traceback.format_exc()
-                log.error(f"Scheduler: {e}")
+        if taskName != '':
+            self._start_task(taskName)
         else:
             if not cmd:
                 log.info('New tasks cycle')
             else:
                 log.info('Start all tasks')
 
-            for i in self.taskList:
+            for taskName in self.taskList:
                 # в случае отмены не продолжать
                 if self.status == 'cancel':  # далее уже сам воркер следит даже если пауза
                     self.curTask = ''
                     self.status = 'ready'
                     return
-                self.curTask = i[0]
-                try:
-                    taskId = self._mark_task_start(i[0])
-                    lootPicker = self.LootPicker(taskId, i[0], i[1])
-                    lootPicker.run()
-                except Exception as e:
-                    if log.level == 10:
-                        e = traceback.format_exc()
-                    log.error(f"Scheduler: {e}")
+                else:
+                    self._start_task(taskName)
 
         self.curTask = ''
         if self.taskCycles > 0:
             self.status = 'wait'
         else:
             self.status = 'ready'
+
         if cmd:
             log.info('All tasks completed')
         else:
@@ -156,42 +151,32 @@ class Scheduler:
                 log.info('Tasks cycle done. Task replays are over')
             else:
                 log.info(f'Tasks cycle done. Left: {self.taskCycles}')
-        return
 
-    # вернёт конкретное задание или пустой кортеж
-    def get_task(self, taskName: str) -> tuple:
-        for i in self.taskList:
-            if taskName == i[0]:
-                return i
-        return ()
+    def _get_workers(self):
+        """обновит список активных рабочих"""
+        ls = [i for i in self.workers if i.isAlive()]
+        # TODO or not todo?
+        self.workers = ls[:]
 
-    # обновит список активных рабочих
-    def get_workers(self):
-        ls = []
-        for i in self.workers:
-            if i.isAlive():
-                ls.append(i)
-            self.workers = ls[:]
-
-    def isTaskTime(self):
+    def _isTaskTime(self):
         return dtime.datetime.now() >= self.startTime
 
-    # обновит время старта, от которого считать время повтора
-    def update_startTime(self):
+    def _update_startTime(self):
+        """обновит время старта, от которого считать время повтора"""
         if self.startTime is None:
             return
         self.startTime = self.startTime + dtime.timedelta(minutes=self.repeatMin)
 
-    def run(self, LootPicker):
+    def run(self, Picker):
         log.debug("Starting Scheduler thread")
-        self.LootPicker = LootPicker
+        self.Picker = Picker
 
         while not selfControl.started and self.cmd != 'stop':
             time.sleep(0.2)
 
         while self.cmd != 'stop':
-            self.get_workers()
-            # print('%s >= %s is %s' %(dtime.datetime.now(), self.startTime, self.isTaskTime()))
+            self._get_workers()
+            # print('%s >= %s is %s' %(dtime.datetime.now(), self.startTime, self._isTaskTime()))
             # message(('self.status',  self.status), clrSun)
 
             if self.status == 'ready':
@@ -199,18 +184,15 @@ class Scheduler:
                 # то переходит в ждущий режим
                 if self.taskCycles > 0:
                     self.status = 'wait'
-                    if self.isTaskTime():
-                        ht = timer_named('work_manager', 0, self.work_manager, )
+                    if self._isTaskTime():
+                        ht = timer_named('work_manager', 0, self._work_manager, )
                         ht.start()
                         self.workers.append(ht)
-
                     # все последующие повторы отсчитываются от первого
-                    else:
-                        pass
             else:
                 if self.taskCycles > 0:
-                    if self.isTaskTime():
-                        ht = timer_named('work_manager', 0, self.work_manager, )
+                    if self._isTaskTime():
+                        ht = timer_named('work_manager', 0, self._work_manager, )
                         ht.start()
                         self.workers.append(ht)
 
@@ -226,7 +208,7 @@ class Scheduler:
         for ht in self.workers:
             # message(ht,clrRed)
             ht.cancel()
-        self.get_workers()
+        self._get_workers()
         for ht in self.workers:
             # message(ht,clrSun)
             ht.join()
@@ -234,8 +216,8 @@ class Scheduler:
         log.debug("Stopped Scheduler thread")
         return
 
-    # интерфейс приёма команд от rest
     def execute(self, cmd, taskName=''):
+        """интерфейс приёма команд от rest"""
         result = 'error'
         msg = ''
         try:
@@ -256,14 +238,14 @@ class Scheduler:
                         if task == ():
                             msg = 'task is undefined'
                         else:
-                            ht = timer_named('work_manager', 0, self.work_manager, args=(task, self.curTask, True))
+                            ht = timer_named('work_manager', 0, self._work_manager, args=(task, self.curTask, True))
                             ht.start()
                             self.workers.append(ht)
                             result = 'ok'
                             msg = f'successfully started task {taskName}'
                     else:
                         ht = timer_named(
-                            'work_manager', 0, self.work_manager,
+                            'work_manager', 0, self._work_manager,
                             args=('', '', True))
                         ht.start()
                         self.workers.append(ht)
@@ -313,10 +295,49 @@ class Scheduler:
         finally:
             return result, msg
 
+    def _start_task(self, taskName: str):
+        self.curTask = taskName
+        try:
+            lg = create_task_logger(taskName, console)
+            ts = TaskStore(taskName, lg, self.taskList[taskName]['overwriteTaskstore'])
+            taskId = self._mark_task_start(taskName)
+            cf = self.taskList[taskName]
+
+            picker = self.Picker(taskId, taskName, cf, lg, ts)
+            picker.run()
+
+            tab = '\n' + '\t' * 5
+            lg.info(
+                f"Task done"
+                f"{tab}Total objects: {picker.syncCount[0]}"
+                f"{tab}Seen: {picker.syncCount[1]}"
+                f"{tab}New: {picker.syncCount[2]}"
+                f"{tab}Differ: {picker.syncCount[3]}"
+                f"{tab}Deleted: {picker.syncCount[4]}"
+                f"{tab}Task errors: {picker.syncCount[5]}"
+                f"{tab}Export errors: {picker.syncCount[6]}")
+
+            if picker.syncCount[5] != 0:
+                lg.warning('Task done with some errors. Check logs')
+            if picker.syncCount[6] != 0:
+                log.warning(
+                    'Task had errors with sending documents. '
+                    f'Documents that were not sent are saved in a folder {picker.factory.failPath}')
+
+            self.check_point(taskId, picker.syncCount, 'complete')
+        except Exception as e:
+            if log.level == 10:
+                e = traceback.format_exc()
+            log.error(f"Fail with task {taskName}: {e}")
+
 
 def timer_named(name, interval, function, *args, **kwargs):
-    # тот же таймер, только можно указать имя потока
-    # т.к. сам таймер это тот же tread
+    # TODO рудимент
+    """
+    тот же таймер, только можно указать имя потока, т.к. сам таймер это тот же tread.
+
+    NOTE: сейчас планировщик сам проверяет время старта и запускает задание сразу
+    """
     timer = Timer(interval, function, *args, **kwargs)
     timer.name = name
     return timer
@@ -325,7 +346,7 @@ def timer_named(name, interval, function, *args, **kwargs):
 def first_start_calc(cfg: dict, onStart=True):
     """
     расчёт времени до первого старта заданий.
-    Следующие старты раситывает сам планировщик
+    Следующие старты расчитывает сам планировщик
     :param cfg:
     :param onStart:
     :return:
@@ -360,7 +381,7 @@ def first_start_calc(cfg: dict, onStart=True):
     repeatMin = cfg["repeatMin"]
     taskList = cfg['tasks']
 
-    if cfg["startTask"] and taskCycles != 0 and taskList != []:
+    if cfg["startTask"] and taskCycles != 0 and taskList is not None:
         log.debug(f"Tasks count: {len(taskList)}. Tasks cycles count: {taskCycles}")
         startTime = delay_calc(taskStartTime)
     else:

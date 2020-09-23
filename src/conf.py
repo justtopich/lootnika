@@ -5,6 +5,7 @@ from lootnika import (
     re,
     os, sys,
     homeDir,
+    pickerType,
     traceback)
 
 
@@ -51,17 +52,6 @@ default = {
         "repeatMin": "60",
         "taskCount": "1",
         "0": "example"
-    },
-    "example": {
-        "docRef": "myDB-@id@",
-        "DBhost": "localhost",
-        "DBport": "3306",
-        "DBscheme": "scheme",
-        "DBusr": "user",
-        "DBpsw": "password",
-        "NotNullRows": "False",
-        "selectID": "SELECT some_uid AS id FROM sheme.table1",
-        "SelectFields0": "SELECT * FROM sheme.table2 where obj_id=@id@"
     },
     "logging": {
         "Enable": "True",
@@ -131,7 +121,6 @@ def write_section(section: str, params: dict) -> bool:
         with open(f"{homeDir}lootnika.cfg", "w") as configFile:
             config.write(configFile)
 
-    print(f'Write section {section}')
     config.optionxform = str  # позволяет записать параметр сохранив регистр
     config.add_section(section)
 
@@ -185,7 +174,7 @@ def create_logger(config: configparser.RawConfigParser) -> (logging.Logger, logg
     log_formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     my_handler = RotatingFileHandler(
-        f"{homeDir}logs/main.log",
+        f"{homeDir}logs/lootnika.log",
         maxBytes=logSize * 1024,
         backupCount=logCount,
         encoding='utf-8')
@@ -203,7 +192,7 @@ def create_logger(config: configparser.RawConfigParser) -> (logging.Logger, logg
     console.setLevel(level)
     # logging.getLogger('root').addHandler(console)
 
-    log = logging.getLogger('MainApp')
+    log = logging.getLogger('Lootnika')
     log.addHandler(my_handler)
     log.setLevel(level)
     log.addHandler(console)
@@ -285,97 +274,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             time.sleep(3)
             raise SystemExit(1)
 
-    # def verify_output():
-    #     try:
-    #         # TODO verify publish & format
-    #         cfg['output']['exporter'] = config.get("output", "exporter")
-    #         cfg['output']['format'] = config.get("output", "format")
-    #         cfg['output']['batchSize'] = config.getint("output", "BatchSize")
-    #
-    #         if config.has_option('output', 'failPath'):
-    #             cfg['output']['failPath'] = config.get("output", "failPath").replace("\\", "/", -1)
-    #             if ":" not in cfg['output']['failPath']:
-    #                 cfg['output']['failPath'] = f"{homeDir}{cfg['output']['failPath']}"
-    #             if not cfg['output']['failPath'].endswith("/"):
-    #                 cfg['output']['failPath'] += "/"
-    #         else:
-    #             cfg['output']['failPath'] = f"{homeDir}{default['output']['failPath']}"
-    #
-    #         os.makedirs(cfg['output']['failPath'])
-    #     except FileExistsError:
-    #         pass
-    #     except Exception as e:
-    #         log.error(f"incorrect parameters in [output]: {e}")
-    #         time.sleep(3)
-    #         raise SystemExit(1)
-
     def verify_scheduler():
-        def get_task_params(ls: list) -> list:
-            taskList, args = [], {}
-            for taskName in ls:
-                try:
-                    if config.has_option(taskName, 'overwriteTaskstore'):
-                        args['overwriteTaskstore'] = config.getboolean(taskName, 'overwriteTaskstore')
-                    else:
-                        args['overwriteTaskstore'] = False
-
-                    args['DBhost'] = config.get(taskName, "DBhost")
-                    args['DBport'] = config.getint(taskName, "DBport")
-                    args['DBscheme'] = config.get(taskName, "DBscheme")
-                    args['DBusr'] = config.get(taskName, "DBusr")
-                    args['DBpsw'] = config.get(taskName, "DBpsw")
-                    args['NotNullRows'] = config.getboolean(taskName, "NotNullRows")  # разрешить возращать пустые строки
-                    args['docRef'] = config.get(taskName, "docRef")
-
-                    if config.has_option(taskName, "selectID"):
-                        n = 0
-                        subList = []
-                        selectList = []
-                        args['selectID'] = config.get(taskName, "selectID").lower()
-                        while True:
-                            try:
-                                subList.append(config.get(taskName, f"selectFields{n}".lower()))
-                            except:
-                                if n == 0:
-                                    raise Exception("Doesn't set selectFields0")
-                                else:
-                                    break
-
-                            m = 0
-                            while True:
-                                try:
-                                    subList.append(config.get(taskName, f"selectFields{n}-{m}".lower()))
-                                    m += 1
-                                except:
-                                    break
-                            if subList != []:
-                                selectList.append(subList[:])
-                                subList.clear()
-                            n += 1
-                        args['selectList'] = selectList.copy()
-                    else:
-                        raise Exception('not found first SQL request. Set <selectID>')
-                except Exception as e:
-                    log.error(f"incorrect parameters in [{taskName}]: {e}")
-                    time.sleep(3)
-                    raise SystemExit(1)
-
-                # TODO сборщик сам должен проверять свою секцию
-                """
-                независимо от сборщика должны быть:
-                    - exporter
-                    - overwritetaskstore
-                """
-
-                # if config.has_option(taskName, "exporter"):
-                #     args['exporter'] = config.get(taskName, "exporter")
-                    # args['exporter'] = load_exporter(config.get(taskName, "exporter"))
-                # else:
-                args['exporter'] = 'export'
-
-                taskList.append((taskName, args))
-            return taskList
-
         tmp = cfg['schedule']
         try:
             tmp["startTask"] = config.getboolean("schedule", "enable")
@@ -400,24 +299,93 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             if tmp["taskCount"] < 0:
                 raise Exception('incorrect parameter taskCount')
             elif tmp["taskCount"] == 0:
-                taskList = []
+                tmp['tasks'] = None
             else:
-                ls = [config.get("schedule", str(n)).lower() for n in range(tmp["taskCount"])]
-                taskList = get_task_params(ls)
+                tmp['tasks'] = {}
+                for n in range(tmp["taskCount"]):
+                    tmp['tasks'][config.get("schedule", str(n)).lower()] = {}
 
-            if tmp["startTask"] and taskList == []:
-                raise Exception('Schedule is enabled, but no one task is active')
+            if tmp["startTask"]:
+                if tmp['tasks'] is None:
+                    raise Exception('Schedule is enabled, but no one task is active')
+                elif tmp["taskCycles"] == 0:
+                    raise Exception('Schedule is enabled, but taskCycles = 0')
 
-            cfg['schedule']['tasks'] = taskList
         except Exception as e:
             log.error(f"incorrect parameters in [Schedule]: {e}")
             time.sleep(3)
             raise SystemExit(1)
 
+    def verify_task():
+        """
+        независимо от сборщика должны быть:
+            - exporter
+            - overwritetaskstore
+        """
+
+        # if config.has_option(taskName, "exporter"):
+        #     args['exporter'] = config.get(taskName, "exporter")
+            # args['exporter'] = load_exporter(config.get(taskName, "exporter"))
+        # else:
+        # args['exporter'] = 'export'
+
+        try:
+            module = __import__(
+                f'pickers.{pickerType}.conf',
+                globals=globals(),
+                locals=locals(),
+                fromlist=['load_config', 'defaultCfg'])
+
+            load_config = getattr(module, 'load_config')
+            defaultCfg = getattr(module, 'defaultCfg')
+
+        except ModuleNotFoundError as e:
+            log.fatal(f"No picker {pickerType}. Check if a module exists in directory pickers")
+            raise SystemExit(1)
+        except AttributeError as e:
+            log.fatal(f'Wrong picker: {e}')
+            raise SystemExit(1)
+        except Exception as e:
+            log.fatal(f'Fail load picker: {e}')
+            raise SystemExit(1)
+
+        if cfg['schedule']['tasks'] is None:
+            log.warning("Lootnika have no tasks")
+            return
+
+        for taskName in cfg['schedule']['tasks']:
+            if not config.has_section(taskName):
+                log.warning(f'Not found task section {taskName}')
+
+                if write_section(taskName, defaultCfg):
+                    log.error("created new sections in config file. Restart me to apply them")
+                    time.sleep(3)
+                    raise SystemExit(1)
+
+            try:
+                task = load_config(taskName, config)
+
+                if config.has_option(taskName, 'overwriteTaskstore'):
+                    task['overwriteTaskstore'] = config.getboolean(taskName, 'overwriteTaskstore')
+                else:
+                    task['overwriteTaskstore'] = False
+
+                # TODO реализовать
+                if config.has_option(taskName, 'exporter'):
+                    task['exporter'] = config.get(taskName, 'exporter')
+                else:
+                    task['exporter'] = "export"
+
+                cfg['schedule']['tasks'][taskName] = task
+            except Exception as e:
+                log.error(f"incorrect parameters in [{taskName}]: {e}")
+                time.sleep(3)
+                raise SystemExit(1)
+
     verify_rest()
     verify_diskUsage()
-    # verify_output()
     verify_scheduler()
+    verify_task()
     return cfg
 
 
@@ -432,7 +400,7 @@ def load_exporter(name: str) -> dict:
     try:
         expType = config.get(name, 'type')
 
-        module = __import__(f'exports.{expType}.exporter', globals=globals(), locals=locals(),  fromlist=['Exporter'])
+        module = __import__(f'exporters.{expType}.exporter', globals=globals(), locals=locals(),  fromlist=['Exporter'])
         Exporter = getattr(module, 'Exporter')
         exporter = Exporter(name)
 
@@ -445,13 +413,13 @@ def load_exporter(name: str) -> dict:
                     print("WARNING: created new sections in config file. Restart me to apply them")
                     raise SystemExit(1)
         except Exception as e:
-            log.error(f"Fail to load default exporter {name}: {e}")
+            log.error(f"Fail to load exporter {name}: {e}")
 
         cfg['exporters'][name] = exporter
         exporter.load_config(config)
         return cfg
     except ModuleNotFoundError as e:
-        log.fatal(f"No exporter {name}. Check if a module exists in directory publish")
+        log.fatal(f"No exporter {name}. Check if a module exists in directory exporters")
         raise SystemExit(1)
     except AttributeError as e:
         log.fatal(f'Wrong exporter: {e}')
@@ -475,7 +443,7 @@ if __name__ != '__main__':
     cfg = verify_config(config, log)
 
     # TODO tasks can set export
-    # see get_task_params
+    # see verify_task
     if config.has_section('export'):
         cfg = load_exporter('export')
     else:

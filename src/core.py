@@ -6,6 +6,7 @@ from lootnika import (
     traceback,
     sys, os,
     homeDir,
+    pickerType,
     __version__)
 from conf import (
     cfg,
@@ -130,7 +131,7 @@ class SelfControl(Thread):
                         if n == 20: # ограничение времени запуска
                             crash = self.crash('One of the modules does not work correctly')
                         elif n == 10:
-                            log.warning("slow lootnika launch startup")
+                            log.warning("detected slow Lootnika startup")
                 # иначе следит за их работой
                 else:
                     if not self.isVerified and not self.exit:
@@ -139,10 +140,26 @@ class SelfControl(Thread):
             time.sleep(self.rate)
 
 
+def load_picker():
+    try:
+        module = __import__(f'pickers.{pickerType}.picker', globals=globals(), locals=locals(),  fromlist=['Picker'])
+        return getattr(module, 'Picker')
+
+    except ModuleNotFoundError as e:
+        log.fatal(f"No picker {pickerType}. Check if a module exists in directory pickers")
+        raise SystemExit(1)
+    except AttributeError as e:
+        log.fatal(f'Wrong picker: {e}')
+        raise SystemExit(1)
+    except Exception as e:
+        log.fatal(f'Fail load picker: {e}')
+        raise SystemExit(1)
+
+
 if __name__ != "__main__":
     log.debug("Starting main thread")
-    port = cfg['rest']['port']
-    host = cfg['rest']['host']
+    # port = cfg['rest']['port']
+    # host = cfg['rest']['host']
 
     selfControl = SelfControl()
     ds = Datastore(f'{homeDir}lootnika_tasks_journal.db')
@@ -150,11 +167,10 @@ if __name__ != "__main__":
     from scheduler import Scheduler, first_start_calc
     startTime, taskCycles, repeatMin = first_start_calc(cfg['schedule'])
 
-    # Scheduler и Collector должны видеть друг друга
+    # Scheduler и Picker должны видеть друг друга
     scheduler = Scheduler(cfg['schedule']['tasks'], taskCycles, repeatMin, startTime)
-
-    from collector import Collector
-    Thread(name='Scheduler', target=scheduler.run, args=(Collector,)).start()
+    Picker = load_picker()
+    Thread(name='Scheduler', target=scheduler.run, args=(Picker, )).start()
 
     if 'run' in sys.argv:
         # захват клавиатуры возможен лишь из консоли

@@ -1,8 +1,9 @@
 from lootnika import (
     configparser,
-    Logger)
+    Logger,
+    os)
 from conf import log, create_dirs
-from exports.lootnika_text.formats.csv import Converter
+
 
 class Exporter:
     def __init__(self, name: str):
@@ -17,9 +18,10 @@ class Exporter:
             "extension": "json",
             "path": "outgoing",
             "batchsize": "100",
-            "failPath": "send_failed/"}
+            "failPath": "send_failed/"
+        }
 
-    def load_config(self, config: configparser):
+    def load_config(self, config: configparser) -> dict:
         try:
             self.cfg['batchSize'] = config.getint(self.name, "batchSize")
             self.cfg['path'] = config.get(self.name, 'path')
@@ -48,7 +50,7 @@ class Exporter:
 
             try:
                 self.cfg['format'] = config.get(self.name, 'format')
-                module = __import__(f"exports.{self.type}.formats.{self.cfg['format']}",
+                module = __import__(f"exporters.{self.type}.formats.{self.cfg['format']}",
                                     globals=globals(),
                                     locals=locals(),
                                     fromlist=['Converter'])
@@ -102,3 +104,12 @@ class Exporter:
         self._filename += 1
         with open(f"{self.cfg['path']}{self._filename}.{self.cfg['extension']}", mode='a') as f:
             f.write(parcel)
+
+    def send_delete(self, refList: list):
+        """Delete not supported by this Exporter"""
+        ...
+        # for ref in refList:
+        #     try:
+        #         os.remove(f"{self.cfg['path']}{self._filename}.{self.cfg['extension']}")
+        #     except Exception as e:
+        #         self.log.warning(f'')

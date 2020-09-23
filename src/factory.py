@@ -11,10 +11,10 @@ from taskstore import Document
 
 
 class Factory(Thread):
-    def __init__(self, taskName: str, taskLog: Logger, exporter: "Exporter", syncCount: list):
+    def __init__(self, taskName: str, taskLog: Logger, exporter: "Picker", syncCount: list):
         """
         :param taskName: required for creating subdir in SendFail path
-        :param syncCount: collector syncCount. Required for count up exporting fails
+        :param syncCount: Picker syncCount. Required for count up exporting fails
         """
         super(Factory, self).__init__()
         self.log = taskLog
@@ -62,7 +62,16 @@ class Factory(Thread):
             finally:
                 self.docs.task_done()
 
-    def put(self, doc: Document):
+    def put(self, doc: Document or str):
+        """
+        Put lootnika document or command.
+        Command can be:
+            --send-- send parcel immediately
+            --stop-- stop factory.
+
+        The factory will lose the package if it has not been sent.
+        Use it for hard stop. For safe stop must use: send, stop
+        """
         self.docs.put(doc)
 
     def pre_process(self):
@@ -86,7 +95,14 @@ class Factory(Thread):
         self.status = 'work'
 
     def send_delete(self, refList: list):
-        ...
+        ttl = len(refList)
+        if ttl > self.batchSize:
+            start = 0
+            while start < ttl:
+                self.exporter.send_delete(refList[start:start + self.batchSize])
+                start += self.batchSize
+        else:
+            self.exporter.send_delete(refList)
 
     def save_fail(self, parcel: bytearray, failPath: str):
         self.syncCount[6] += 1

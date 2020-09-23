@@ -4,7 +4,28 @@ Look for new version on [https://github.com/justtopich/](https://github.com/just
 
 
 
-## 0.2.0-dev.0
+## 0.3.0-dev.0 (20200923)
+
+### Features
+
+* Done `send_delete` method in Factory
+
+### Fixed
+
+* Lootnika marks identical documents as modified. Fixed by change calculating  document
+
+* In the task beginning always have warning 
+
+  > Previous task is still running
+
+### Improvements
+
+* Calculating  document hash only for meta fields, without header
+* Далнейшее разделение модулей. По аналогии с экпортом, сборщики подключаются как отдельный модуль. Теперь они располанаются в папке **pickers**
+
+
+
+## 0.2.0-dev.0 (20200916)
 
 ### Features
 

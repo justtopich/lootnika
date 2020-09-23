@@ -27,12 +27,11 @@ import win32service
 import win32serviceutil
 import servicemanager
 import requests
-import mysql.connector as mySqlCntr
-from mysql.connector import errorcode
 from clickhouse_cityhash import cityhash
 
 
-__version__ = "0.2.0-dev.0"
+__version__ = "0.3.0-dev.0"
+pickerType = "lootnika_mysql"
 # Windows запускает модули exe из папки пользователя
 # Папка должна определяться только исполняемым файлом
 keys = os.path.split(os.path.abspath(os.path.join(os.curdir, __file__)))
@@ -72,9 +71,10 @@ __all__ = [
     'dtime', 'time', 'configparser', 're', 'logging', 'STDOUT', 'Queue',
     'shutil', 'signal', 'Thread', 'Timer', 'Popen', 'PIPE', 'DEVNULL',
     'get_threads', 'token_hex', 'uuid4', 'copy', 'Logger', 'socket',
+    'pickerType',
 
     'win32event', 'win32service', 'win32serviceutil', 'win32event', 'sqlite3',
-    'requests', 'mySqlCntr', 'errorcode', 'dpath', 'orjson', 'cityhash',
+    'requests', 'dpath', 'orjson', 'cityhash',
 
     '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout'
 ]

@@ -19,9 +19,9 @@
 from __init__ import *
 
 
-# devMod = False
-devMod = True
-sys.argv.append('run')  # only debug mode
+devMod = False
+# devMod = True
+# sys.argv.append('run')  # only debug mode
 
 
 def svc_init():
@@ -116,3 +116,4 @@ if __name__ == "__main__":
               ' install: install as windows service\n'
               ' remove: delete windows service\n'
               ' update: update windows service\n')
+        # os._exit(42)

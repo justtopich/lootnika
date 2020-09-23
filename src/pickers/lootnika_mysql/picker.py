@@ -1,60 +1,66 @@
-from lootnika import (
-    time,
-    traceback,
-    mySqlCntr, errorcode)
-from conf import (
-    cfg,
-    console,
-    create_task_logger)
-from taskstore import TaskStore, Document
-from factory import Factory
+from lootnika import time, traceback, Logger
+from taskstore import Document, TaskStore
 from core import scheduler
+from factory import Factory
+from conf import cfg
+
+import mysql.connector as mySqlCntr
+from mysql.connector import errorcode
 
 
-class Collector:
-    # TODO create logger & publisher in scheduler
-    def __init__(self, taskId: int, taskName: str, task: dict):
-        self.taskName = taskName
+class Picker:
+    # TODO create exporter in scheduler
+    def __init__(self, taskId: int, name: str, task: dict, log: Logger, taskStore: TaskStore):
+        """
+        Initialization
+
+        :param taskId: datastore._mark_task_start()
+        :param name: task section name
+        :param task: task section
+        :param log: conf.create_task_logger()
+        :param taskStore: TaskStore interface
+        """
+        self.type = "lootnika_mysql"
+        self.taskName = name
         self.taskId = taskId
+        self.ts = taskStore
         self.task = task
-        self.ts = None
+        self.log = log
 
         # [total ,seen, new, differ, delete, task error, export error, last doc id]
         self.syncCount = [-1, 0, 0, 0, 0, 0, 0, '']
-        self.log = create_task_logger(taskName, console)
 
         # self.factory, как и Datastore, работает в своём потоке и имеет свою очередь.
         # Документы из очереди он сразу добавляет в adds, которые отправляет по достижении лимита
         # (BatchSize) или если в очереди будет команда send. Отдельный поток и очередь позволяют
         # сразу формировать adds по ходу накопления документов, а не копить\таскасть список.
-        self.factory = Factory(taskName, self.log, cfg['exporters'][task['exporter']], self.syncCount)
+        self.factory = Factory(name, log, cfg['exporters'][task['exporter']], self.syncCount)
 
     def is_terminated(self) -> bool:
         if scheduler.status == 'pause':
-            self.log.info('Task execution paused')
+            self.log.info('Task paused')
             scheduler.check_point(self.taskId, self.syncCount, 'pause')
             while scheduler.status == 'pause':
                 time.sleep(1)
 
             # pause может сменить stop
             if scheduler.status == 'cancel':
-                self.log.warning('Task execution was interrupted by the user')
+                self.log.warning('Task is interrupted by the user')
                 scheduler.check_point(self.taskId, self.syncCount, 'cancel')
                 return True
             else:
-                self.log.info('Task execution resumed')
+                self.log.info('Task resumed')
                 return False
 
         elif scheduler.status == 'work':
             return False
         elif scheduler.status == 'cancel':
-            self.log.warning('Task execution was interrupted by the user')
+            self.log.warning('Task is interrupted by the user')
             scheduler.check_point(self.taskId, self.syncCount, 'cancel')
             return True
         else:
             self.log.warning('Task refused. Sending collected changes')
             scheduler.check_point(self.taskId, self.syncCount, 'cancel')
-            self.log.debug("Stopping Output thread")
             self.factory.put('--send--')
             self.factory.put('--stop--')
             self.factory.join()
@@ -217,7 +223,6 @@ class Collector:
                 self.log.error('Fail to create query cursor')
                 return
 
-            self.ts = TaskStore(self.taskName, self.log, self.task['overwriteTaskstore'])
             if self.ts.cnx is None:
                 self.log.error('Fail to create taskstore')
                 return
@@ -239,7 +244,8 @@ class Collector:
                 self.log.error(f'No objects ID: {e}')
                 return
 
-            if self.is_terminated(): return
+            if self.is_terminated():
+                return
 
             for ongo, i in enumerate(idList):
                 ongo += 1
@@ -274,37 +280,19 @@ class Collector:
                 if ongo % 100 == 0:
                     scheduler.check_point(self.taskId, self.syncCount)
 
-                if self.is_terminated(): return
+                if self.is_terminated():
+                    return
+
             scheduler.check_point(self.taskId, self.syncCount)
-            if self.is_terminated(): return
+            if self.is_terminated():
+                return
 
             self.factory.put('--send--')
             self.delete()
 
+            scheduler.check_point(self.taskId, self.syncCount)
             self.factory.put('--stop--')
             self.factory.join()
-
-            scheduler.check_point(self.taskId, self.syncCount)
-
-            tab = '\n' + '\t' * 5
-            self.log.info(
-                f"Task done\n"
-                f"{tab[1:]}Total objects: {self.syncCount[0]}"
-                f"{tab}Seen: {self.syncCount[1]}"
-                f"{tab}New: {self.syncCount[2]}"
-                f"{tab}Differ: {self.syncCount[3]}"
-                f"{tab}Deleted: {self.syncCount[4]}"
-                f"{tab}Task errors: {self.syncCount[5]}"
-                f"{tab}Export errors: {self.syncCount[6]}")
-
-            if self.syncCount[5] != 0:
-                self.log.warning('Task done with some errors. Check logs')
-            if self.syncCount[6] != 0:
-                self.log.warning(
-                    'Task had errors with sending documents. '
-                    f'Documents that were not sent are saved in a folder {self.factory.failPath}')
-            scheduler.check_point(self.taskId, self.syncCount, 'complete')
-            return
 
         except Exception as e:
             if self.log.level == 10:
