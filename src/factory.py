@@ -28,7 +28,7 @@ class Factory(Thread):
         self.exporter = exporter
         self.converter = exporter._converter
         self.batchSize = exporter.cfg['batchSize']
-        # TODO оставить за экспортёром
+        # TODO оставить save_fail за экспортёром
         self.failPath = f"{homeDir}{exporter.cfg['failPath']}{dtime.date.today().strftime('%Y%m%d')}/{taskName}/"
         self.start()
 
@@ -66,10 +66,10 @@ class Factory(Thread):
         """
         Put lootnika document or command.
         Command can be:
-            --send-- send parcel immediately
-            --stop-- stop factory.
+            - --send-- - send parcel immediately\n
+            - --stop-- - stop factory.
 
-        The factory will lose the package if it has not been sent.
+        Factory will loose the package if it has not been sent.
         Use it for hard stop. For safe stop must use: send, stop
         """
         self.docs.put(doc)
@@ -80,16 +80,12 @@ class Factory(Thread):
     def send(self, parcel):
         self.status = 'sending'
         self.log.info(f'New parcel sending, size: {self.parcelSize}')
-        fail = True
 
         try:
             self.exporter.export(parcel)
-            fail = False
         except Exception as e:
             e = traceback.format_exc()
             self.log.error("Failed to export: %s" % str(e).split('rror')[-1])
-
-        if fail:
             self.save_fail(bytearray(parcel, encoding=self.converter.encoding), self.failPath)
 
         self.status = 'work'

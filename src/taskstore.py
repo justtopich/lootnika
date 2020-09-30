@@ -65,7 +65,7 @@ class TaskStore:
 
             if fail:
                 if not self.overwrite:
-                    self.log.warning(f"Creating new taskstore scheme: {e}")
+                    self.log.warning(f"Creating new taskstore scheme")
                 try:
                     cur.execute(
                         """CREATE TABLE documents (
@@ -151,10 +151,27 @@ class TaskStore:
 
 
 class Document:
-    def __init__(self, taskName: str, reference: str, fields: dict):
-        assert isinstance(taskName, str)
-        assert isinstance(reference, str)
-        assert isinstance(fields, dict)
+    """
+    Создание Lootnika Document - внутренний формат с котрым работают Factory и сборщики.
+    Представляет из себя обычный json c заголовком и телом fields в котором хранятся поля документа.
+    Хэш считается по полям из тела документа.
+    """
+    def __init__(self, taskName: str, reference: str, loootId: str, fields: dict):
+        """
+        Создание документа и его референса
+
+        :param reference: шаблон создания reference
+        :param loootId: идентификатор документа в источнике.
+            Используется если по какой-то причине в fields
+            нету поля которое нужно для reference
+        """
+        try:
+            assert isinstance(taskName, str)
+            assert isinstance(reference, str)
+            assert isinstance(loootId, str)
+            assert isinstance(fields, dict)
+        except Exception as e:
+            raise Exception("Wrong incoming type")
 
         self.reference = reference
         self.raw = {
@@ -166,8 +183,9 @@ class Document:
             'format': '',
             'fields': fields}
 
+        self.reference = self.reference.replace(f'@loot_id@', loootId, -1)
         for i in fields:
-            self.reference = self.reference.replace(f'@{i}@', str(fields[i]))
+            self.reference = self.reference.replace(f'@{i}@', str(fields[i]), -1)
             self.raw['reference'] = self.reference
         if '@' in self.reference:
             raise Exception(f"Missing the necessary @field@. Reference: {self.reference}")

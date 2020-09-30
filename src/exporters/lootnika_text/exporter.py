@@ -1,15 +1,11 @@
-from lootnika import (
-    configparser,
-    Logger,
-    os)
-from conf import log, create_dirs
+from lootnika import configparser
+from conf import create_dirs
 
 
 class Exporter:
     def __init__(self, name: str):
         self.type = "lootnika_text"
         self.name = name
-        self.log = log
         self.cfg = {}
         self._filename = -1
         self._converter = None
@@ -72,13 +68,6 @@ class Exporter:
         create_dirs((self.cfg['path'], self.cfg['failPath']))
         return self.cfg
 
-    # TODO use scheduler for that
-    def set_logger(self, taskLog: Logger):
-        """
-        call at the beginning of each task
-        """
-        self.log = taskLog
-
     def export(self, parcel: str):
         # filename = self.filename
 
@@ -105,7 +94,7 @@ class Exporter:
         with open(f"{self.cfg['path']}{self._filename}.{self.cfg['extension']}", mode='a') as f:
             f.write(parcel)
 
-    def send_delete(self, refList: list):
+    def delete(self, refList: list):
         """Delete not supported by this Exporter"""
         ...
         # for ref in refList:

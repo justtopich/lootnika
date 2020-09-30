@@ -234,7 +234,7 @@ def get_svc_params() -> list:
         raise SystemExit(1)
 
 
-def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> dict:
+def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> [dict, set]:
     def verify_rest():
         try:
             cfg['rest']['host'] = config.get("server", "host")
@@ -316,19 +316,14 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             time.sleep(3)
             raise SystemExit(1)
 
-    def verify_task():
+    def verify_tasks() -> set:
         """
-        независимо от сборщика должны быть:
+        Any Pickers can have options:
             - exporter
             - overwritetaskstore
+
+        :return: set of tasks exporters
         """
-
-        # if config.has_option(taskName, "exporter"):
-        #     args['exporter'] = config.get(taskName, "exporter")
-            # args['exporter'] = load_exporter(config.get(taskName, "exporter"))
-        # else:
-        # args['exporter'] = 'export'
-
         try:
             module = __import__(
                 f'pickers.{pickerType}.conf',
@@ -351,8 +346,9 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
 
         if cfg['schedule']['tasks'] is None:
             log.warning("Lootnika have no tasks")
-            return
+            return set()
 
+        exports = []
         for taskName in cfg['schedule']['tasks']:
             if not config.has_section(taskName):
                 log.warning(f'Not found task section {taskName}')
@@ -376,17 +372,20 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 else:
                     task['exporter'] = "export"
 
+                exports.append(task['exporter'])
                 cfg['schedule']['tasks'][taskName] = task
             except Exception as e:
                 log.error(f"incorrect parameters in [{taskName}]: {e}")
                 time.sleep(3)
                 raise SystemExit(1)
 
+        return set(exports)
+
     verify_rest()
     verify_diskUsage()
     verify_scheduler()
-    verify_task()
-    return cfg
+    exports = verify_tasks()
+    return cfg, exports
 
 
 # TODO many endpoints
@@ -440,12 +439,8 @@ if __name__ != '__main__':
     config = open_config()
     check_sections(config)
     log, logRest, console = create_logger(config)
-    cfg = verify_config(config, log)
+    cfg, exporters = verify_config(config, log)
 
-    # TODO tasks can set export
-    # see verify_task
-    if config.has_section('export'):
-        cfg = load_exporter('export')
-    else:
-        log.fatal("Individual exports not supported in this version")
-        raise SystemExit(-1)
+    # exporters are collected in verify_tasks
+    for i in exporters:
+        cfg = load_exporter(i)

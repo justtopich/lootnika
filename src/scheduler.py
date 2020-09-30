@@ -2,16 +2,17 @@ from lootnika import (
     time, dtime, sout,
     Timer,
     traceback)
-from conf import log, console, create_task_logger
+from conf import log, console, create_task_logger, cfg
 from core import selfControl, shutdown_me, ds
 from taskstore import TaskStore
+from factory import Factory
 
 
 # TODO причесать или пояснить всё
 class Scheduler:
     """
-    Следит за командами управления заданиями и вывзывает их исполнителей
-    collector. Сборщики делают задания из под work_manager - он же работает
+    Следит за командами управления заданиями и вывзывает их исполнителей.
+    Сборщики делают задания из под work_manager - он же работает
     в своём отдельном потоке.
     Сборщика можно вызвать напрямую через команды минуя work_manager,
     но в одно время может работать только один (смотрит статус).
@@ -23,7 +24,7 @@ class Scheduler:
         wait - ждёт время старта следующего повтора\n
         work - выполняет цикл заданий\n
         pause - планировщик приостановлен пользователем.\n
-            Пауза проверяется в самом исполнителе задания в Collector\n
+            Пауза проверяется в самом исполнителе задания в Picker\n
         cancel - остановить немедленно текущий цикл заданий если он сейчас выполняется
 
     cmd
@@ -47,10 +48,15 @@ class Scheduler:
         self.curTask = ''
         self.Picker = None
         self.cmd = ''
+        self.syncCount = {}  # tasks statistics, see _start_task
 
     def _mark_task_start(self, taskName: str) -> int:
+        """
+        create record in datastore
+
+        :return: taskId
+        """
         startTaskTime = dtime.datetime.now().strftime("%d.%m.%Y %H:%M:%S")
-        log.info(f'Start task {taskName}')
         taskId = None
 
         try:
@@ -75,16 +81,14 @@ class Scheduler:
                 log.error(e)
                 raise Exception(e)
 
-    # TODO get count of factory fails
-    # сейчас сборщик передаёт факте свой список и там она отмечает
-    def check_point(self, taskId: str, syncCount: list, status: str = 'run') -> None:
+    def check_point(self, taskId: int, status: str = 'run') -> None:
         """
         Task running progress updating. Statistics are saving in lootnika datastore.
 
-        :param taskId: that given you by schedule
-        :param syncCount: [total ,seen, new, differ, delete, task error, send error, last doc id]
-        :param status: current status. Use one of: pause|cancel|work|fail
+        :param taskId: that given by schedule
+        :param status: current status. Use one of: pause, cancel, work, fail
         """
+        syncCount = self.syncCount[taskId]
         for n, i in enumerate(syncCount):
             if i is None: syncCount[n] = 'null'
 
@@ -297,34 +301,39 @@ class Scheduler:
 
     def _start_task(self, taskName: str):
         self.curTask = taskName
+        log.info(f'Start task {taskName}')
         try:
             lg = create_task_logger(taskName, console)
             ts = TaskStore(taskName, lg, self.taskList[taskName]['overwriteTaskstore'])
             taskId = self._mark_task_start(taskName)
+
+            # [total ,seen, new, differ, delete, task error, export error, last doc id]
+            self.syncCount[taskId] = [-1, 0, 0, 0, 0, 0, 0, '']
             cf = self.taskList[taskName]
 
-            picker = self.Picker(taskId, taskName, cf, lg, ts)
+            fc = Factory(taskName, lg, cfg['exporters'][cf['exporter']], self.syncCount[taskId])
+            picker = self.Picker(taskId, taskName, cf, lg, ts, fc, self.syncCount[taskId])
             picker.run()
 
             tab = '\n' + '\t' * 5
             lg.info(
                 f"Task done"
-                f"{tab}Total objects: {picker.syncCount[0]}"
-                f"{tab}Seen: {picker.syncCount[1]}"
-                f"{tab}New: {picker.syncCount[2]}"
-                f"{tab}Differ: {picker.syncCount[3]}"
-                f"{tab}Deleted: {picker.syncCount[4]}"
-                f"{tab}Task errors: {picker.syncCount[5]}"
-                f"{tab}Export errors: {picker.syncCount[6]}")
+                f"{tab}Total objects: {self.syncCount[taskId][0]}"
+                f"{tab}Seen: {self.syncCount[taskId][1]}"
+                f"{tab}New: {self.syncCount[taskId][2]}"
+                f"{tab}Differ: {self.syncCount[taskId][3]}"
+                f"{tab}Deleted: {self.syncCount[taskId][4]}"
+                f"{tab}Task errors: {self.syncCount[taskId][5]}"
+                f"{tab}Export errors: {self.syncCount[taskId][6]}")
 
-            if picker.syncCount[5] != 0:
+            if self.syncCount[taskId][5] != 0:
                 lg.warning('Task done with some errors. Check logs')
-            if picker.syncCount[6] != 0:
+            if self.syncCount[taskId][6] != 0:
                 log.warning(
                     'Task had errors with sending documents. '
                     f'Documents that were not sent are saved in a folder {picker.factory.failPath}')
 
-            self.check_point(taskId, picker.syncCount, 'complete')
+            self.check_point(taskId, 'complete')
         except Exception as e:
             if log.level == 10:
                 e = traceback.format_exc()

@@ -138,12 +138,11 @@ class Datastore(Thread):
         """
         :param req: сам запрос
         :param arg: аргумент для cur.execute()
-        :param res: Queue(); для sрезультатов для select
+        :param res: Queue(); для результатов для select
         :param token: random str; генерит сам
         :param mode:
         :return:
         """
-        # TODO docstrings вспомнить к чему аргументы
         if token is None:
             token = token_hex(8)
         self.status[token] = -1

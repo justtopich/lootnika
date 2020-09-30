@@ -2,15 +2,14 @@ from lootnika import time, traceback, Logger
 from taskstore import Document, TaskStore
 from core import scheduler
 from factory import Factory
-from conf import cfg
 
 import mysql.connector as mySqlCntr
 from mysql.connector import errorcode
 
 
 class Picker:
-    # TODO create exporter in scheduler
-    def __init__(self, taskId: int, name: str, task: dict, log: Logger, taskStore: TaskStore):
+    def __init__(self, taskId: int, name: str, task: dict, log: Logger,
+                 taskStore: TaskStore, factory: Factory, syncCount: list):
         """
         Initialization
 
@@ -26,27 +25,20 @@ class Picker:
         self.ts = taskStore
         self.task = task
         self.log = log
-
-        # [total ,seen, new, differ, delete, task error, export error, last doc id]
-        self.syncCount = [-1, 0, 0, 0, 0, 0, 0, '']
-
-        # self.factory, как и Datastore, работает в своём потоке и имеет свою очередь.
-        # Документы из очереди он сразу добавляет в adds, которые отправляет по достижении лимита
-        # (BatchSize) или если в очереди будет команда send. Отдельный поток и очередь позволяют
-        # сразу формировать adds по ходу накопления документов, а не копить\таскасть список.
-        self.factory = Factory(name, log, cfg['exporters'][task['exporter']], self.syncCount)
+        self.factory = factory
+        self.syncCount = syncCount
 
     def is_terminated(self) -> bool:
         if scheduler.status == 'pause':
             self.log.info('Task paused')
-            scheduler.check_point(self.taskId, self.syncCount, 'pause')
+            scheduler.check_point(self.taskId, 'pause')
             while scheduler.status == 'pause':
                 time.sleep(1)
 
             # pause может сменить stop
             if scheduler.status == 'cancel':
                 self.log.warning('Task is interrupted by the user')
-                scheduler.check_point(self.taskId, self.syncCount, 'cancel')
+                scheduler.check_point(self.taskId, self.taskName, 'cancel')
                 return True
             else:
                 self.log.info('Task resumed')
@@ -56,17 +48,16 @@ class Picker:
             return False
         elif scheduler.status == 'cancel':
             self.log.warning('Task is interrupted by the user')
-            scheduler.check_point(self.taskId, self.syncCount, 'cancel')
+            scheduler.check_point(self.taskId, 'cancel')
             return True
         else:
             self.log.warning('Task refused. Sending collected changes')
-            scheduler.check_point(self.taskId, self.syncCount, 'cancel')
+            scheduler.check_point(self.taskId, 'cancel')
             self.factory.put('--send--')
             self.factory.put('--stop--')
             self.factory.join()
             return True
 
-    # TODO task error count +1
     def connect(self) -> mySqlCntr.connection:
         self.log.info("Connecting to source...")
         print("\n   -----------         ",
@@ -83,6 +74,7 @@ class Picker:
                 database=self.task['DBscheme'])
             return cnx
         except mySqlCntr.Error as e:
+            self.syncCount[5] += 1
             if e.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 self.log.error("Access denied by source")
             elif e.errno == errorcode.ER_BAD_DB_ERROR:
@@ -90,7 +82,6 @@ class Picker:
             else:
                 self.log.error(f'Connection error: {e}')
 
-    # TODO add selectSize param to batch retrieving fields
     def get_objects_id(self, cnx: mySqlCntr.connection, query: str) -> list:
         """
         Query selectID. Query must return only one column with name "id".
@@ -104,107 +95,136 @@ class Picker:
             if not rows:
                 return []
             else:
-                return [item[0] for item in rows]
+                return [i[0] for i in rows]
 
         except NameError as err:
             self.log.error(str(err))
         finally:
             cur.close()
 
-    def sql_parse(self, cnx: mySqlCntr.connection, fields: dict, task: dict) -> list:
-        def do_select(subSelect, fields, fieldsRow, gen, subS, subR):
-            while True:  # для повтора с изм запросом при пустом возрате
-                try:
-                    cur.execute(subSelect)
-                except Exception as e:
-                    self.log.error(f"Fail to execute query: {e}")
-                    return
+    def sql_parse(self, cnx: mySqlCntr.connection, lootId) -> dict:
+        """
+        Выполнение запросов
 
-                try:
-                    rows = cur.fetchall()
-                except MemoryError:  # для кривых запросов в млрд строк
-                    cur.close()
-                    self.log.error("Not enough memory to fetch rows. Simplify your query")
-                    cur.close()
-                    return
+        :param cnx: current cnx
+        :param lootId: document identifier from source
+        """
+        def parse_rows(select:str, fetchOne=False, group=False) -> [dict]:
+            """
+            Разбор строк. Каждая строка переводится в словарь.
 
-                curDes = cur.description
-                if not rows:
-                    if task['NotNullRows']:
-                        # таким образом я всегда получаю строку, даже если запрос ничего не вернёт.
-                        self.log.warning('Query has returned empty row. Will replaced with <None>')
-                        noneStr = ''  # make_doc() отсеит доку, если в reference попадёт @
+            :param select: сам запрос
+            :param fetchOne: заберёт одну строку, вернёт один словарь
+            :param group: если придёт >1 строк, то упакует в один словарь,
+                т.е. каждое поле будет содержать массив значений.
+            :return: список со словорями, каждый со своим набором полей
+            """
+            try:
+                self.log.debug(select)
+                cur.execute(select)
+            except Exception as e:
+                self.log.error(f"Fail to execute query: {e}")
+                self.syncCount[5] += 1
+                return [{}]
 
-                        for i in curDes:
-                            noneStr += f" '@null@' as {i[0]},"
-                        subSelect = f'SELECT{noneStr[:-1]}'
-                        # print('!#newSelect',subSelect)
-
-                        del noneStr
-                        continue
-                    else:
-                        break
+            try:
+                if fetchOne:
+                    rows = cur.fetchone()
                 else:
-                    for row in rows:
-                        for col, el in enumerate(row):
-                            if el is not None:
+                    rows = cur.fetchall()
+            except MemoryError:  # для кривых запросов в млрд строк
+                self.log.error("Not enough memory to fetch rows. Simplify your query")
+                self.syncCount[5] += 1
+                cur.close()
+                return [{}]
+
+            if not rows:
+                if not self.task['skipEmptyRows']:
+                    # таким образом я всегда получаю строку, даже если запрос ничего не вернёт.
+                    self.log.warning('Query has returned empty row. Will replaced with <None>')
+                    body = {}
+                    try:
+                        curDes = cur.description
+                        for col in curDes:
+                            if isinstance(col, bytes):
                                 # 6 лет прошло, а они это так и не фиксят ><
                                 # MySQLCursor Bug #64392
-                                colName: str = curDes[col][0]
-                                if isinstance(colName, bytes):
-                                    colName = colName.decode('utf-8')
+                                col = col.decode('utf-8')
+                            body[col[0]] = None
 
-                                if subS == 0 and len(rows) < 2:
-                                    fields[colName] = el
-                                elif subS > 0 and len(rows) < 2:
-                                    # уходит в тело данной ветви, чтобы можно было
-                                    # подставлять в след. запросы этой ветви
-                                    fieldsRow[colName] = el
-                                else:
-                                    # множество строк уходит в массив и не
-                                    # принимают участие в последующих запросах
-                                    subfields[colName] = el
+                    except Exception as e:
+                        self.syncCount[5] += 1
+                        self.log.error(f'Fail to parse emtpy row: {e}')
+                    finally:
+                        return [body]
 
-                        if subfields != {}:
-                            subfieldsList.append(subfields.copy())
+            if fetchOne:
+                return [rows]
 
-                    if subfieldsList != [] and subS < 1:
-                        fields[f'subfields{gen}'] = subfieldsList.copy()
-                    elif subfieldsList != [] and subS > 0:
-                        fields[f'subfields{gen}/{subS}-{subR}'] = subfieldsList.copy()
-                break
-            subfieldsList.clear()
-            subfields.clear()
-            return fields
+            ls = []
+            groupBody = {}
+            try:
+                for row in rows:
+                    body = {}
+                    for col, val in row.items():
+                        if val is not None:
+                            # TODO allow get null value?
+                            if group and len(rows) > 1:
+                                try:
+                                    groupBody[col].append(val)
+                                except KeyError:
+                                    groupBody[col] = [val]
+                                except AttributeError:
+                                    groupBody[col] = [groupBody[col], val]
+                            else:
+                                body[col] = val
 
-        cur = cnx.cursor()
-        for gen, select in enumerate(task['selectList']):
-            subfields = {}  # для подзапросов данной ветви
-            subfieldsList = []
-            for subS, subSelect in enumerate(select):
-                # подстановка в шаблон
-                for i in fields:  # значения основной ветви
-                    subSelect = subSelect.replace(f'@{i}@', str(fields[i]), -1)
+                    if not group:
+                        ls.append(body)
+                if group:
+                    ls.append(groupBody)
+                return ls
+            except Exception as e:
+                self.log.error(f'Fail to parse row: {e}')
+                self.syncCount[5] += 1
+                return [{}]
 
-                if subS > 0:
-                    for subR, fieldsRow in enumerate(fields[f'subfields{gen}']):
-                        subSelect0 = subSelect
-                        for p in fieldsRow:  # значения данной ветви подзапросов
-                            subSelect0 = subSelect0.replace(f'@{p}@', str(fieldsRow[p]), -1)
+        cur = cnx.cursor(dictionary=True, buffered=True)
+        fields = {}
 
-                        self.log.debug(f"{subSelect0}")
-                        fields = do_select(subSelect0, fields, fieldsRow, gen, subS, subR)
-                        # print('!#fields', fields)
-                else:
-                    self.log.debug(f"{subSelect}")
-                    fields = do_select(subSelect, fields, '', gen, subS, '')
+        for select in self.task['simpleQuery']:
+            select = select.replace('@loot_id@', str(lootId), -1)
 
-                    if fields is None:
-                        raise Exception('Failed to get an object')
-                    # print('!#fields',fields)
-        if fields != {}:
-            cur.close()
-            return fields
+            for i in fields:
+                select = select.replace(f'@{i}@', str(fields[i]), -1)
+            fields = {**fields, **parse_rows(select, fetchOne=True)[0]}
+
+        # вложенные запросы
+        for bundle in self.task['bundleQuery']:
+            for name, selectList in bundle.items():
+                select = selectList[0].replace('@loot_id@', str(lootId), -1)
+                for i in fields:
+                    select = select.replace(f'@{i}@', str(fields[i]), -1)
+
+                subFields = parse_rows(select)
+                if subFields:
+                    fields[name] = []
+
+                    if len(selectList) > 1:
+                        for sub in subFields:
+                            for select in selectList[1:]:
+                                select = select.replace('@loot_id@', str(lootId), -1)
+
+                                for i in sub:
+                                    select = select.replace(f'@{i}@', str(sub[i]), -1)
+                                for i in fields:
+                                    select = select.replace(f'@{i}@', str(fields[i]), -1)
+
+                                sub = {**sub, **parse_rows(select, group=True)[0]}
+                            fields[name].append(sub)
+                    else:
+                        fields[name].append(subFields)
+        return fields
 
     def delete(self):
         refList = self.ts.delete_unseen()
@@ -234,14 +254,15 @@ class Picker:
             if self.is_terminated():
                 return
 
-            self.log.info('Retrieving objects ID list')
+            self.log.info('Retrieving objects ID')
             try:
                 idList = self.get_objects_id(cnx, self.task['selectID'])
                 self.syncCount[0] = len(idList)
                 self.log.info(f'Retrieved {self.syncCount[0]} objects ID')
-                scheduler.check_point(self.taskId, self.syncCount)
+                scheduler.check_point(self.taskId)
             except Exception as e:
                 self.log.error(f'No objects ID: {e}')
+                self.syncCount[5] += 1
                 return
 
             if self.is_terminated():
@@ -249,11 +270,11 @@ class Picker:
 
             for ongo, i in enumerate(idList):
                 ongo += 1
-                self.log.info('Receive ID %s (%s of %s)' % (i, ongo, self.syncCount[0]))
-                fields = self.sql_parse(cnx, {'id': i}, self.task)
+                self.log.info(f'Receive {i} ({ongo}/{self.syncCount[0]})')
+                fields = self.sql_parse(cnx, i)
 
                 try:
-                    doc = Document(self.taskName, self.task['docRef'], fields)
+                    doc = Document(self.taskName, self.task['docRef'], str(i), fields)
                 except Exception as e:
                     self.log.error(f"Fail to create reference for object with ID={fields['id']}: {e}")
                     self.syncCount[5] += 1
@@ -276,26 +297,26 @@ class Picker:
                 self.syncCount[7] = i
 
                 # realtime ни к чему
-                # TODO пусть этим занимается планировщик, там же задать частоту
                 if ongo % 100 == 0:
-                    scheduler.check_point(self.taskId, self.syncCount)
+                    scheduler.check_point(self.taskId)
 
                 if self.is_terminated():
                     return
 
-            scheduler.check_point(self.taskId, self.syncCount)
+            scheduler.check_point(self.taskId)
             if self.is_terminated():
                 return
 
             self.factory.put('--send--')
             self.delete()
 
-            scheduler.check_point(self.taskId, self.syncCount)
+            scheduler.check_point(self.taskId)
             self.factory.put('--stop--')
             self.factory.join()
 
         except Exception as e:
+            self.syncCount[5] += 1
             if self.log.level == 10:
                 e = traceback.format_exc()
             self.log.error(f'An error happened on task running: {e}')
-            scheduler.check_point(self.taskId, self.syncCount, 'fail')
+            scheduler.check_point(self.taskId, 'fail')
