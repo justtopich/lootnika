@@ -4,6 +4,25 @@ Look for new version on [https://github.com/justtopich/](https://github.com/just
 
 
 
+## 0.4.0-dev.0 (20200930)
+
+### Features
+
+* Tasks can use different exporters
+
+### Fixed
+
+* fail to create taskstore if it doesn't exist and set `overwritetaskstore=false`
+
+### Improvements
+
+* Simplified pickers: some method are moved to scheduler.
+* Remove logger from exporters. 
+* updated **lootnika_mysql** picker
+* creating Lootnika document with new argument `lootId`
+
+
+
 ## 0.3.0-dev.0 (20200923)
 
 ### Features

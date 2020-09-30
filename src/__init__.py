@@ -30,7 +30,7 @@ import requests
 from clickhouse_cityhash import cityhash
 
 
-__version__ = "0.3.0-dev.0"
+__version__ = "0.4.0-dev.1"
 pickerType = "lootnika_mysql"
 # Windows запускает модули exe из папки пользователя
 # Папка должна определяться только исполняемым файлом
