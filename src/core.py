@@ -7,6 +7,7 @@ from lootnika import (
     sys, os,
     homeDir,
     pickerType,
+    httpClient,
     __version__)
 from conf import (
     cfg,
@@ -14,38 +15,44 @@ from conf import (
 from datastore import Datastore
 
 
-def shutdown_me(signal, frame):
+def shutdown_me(signum=1, frame=1):
     """
-    ловит ctrl-C. Останавливает модули в нужном порядке
-    :param signal:
-    :param frame:
-    :return:
+    Останавливает модули в нужном порядке
     """
     log.warning(f'Lootnika stopping on {cfg["rest"]["host"]}:{cfg["rest"]["port"]}')
     if selfControl.exit:
         return
 
-    stopping = [False, False, False]  # logging antispam
+    selfControl.exit = True
+    selfControl.rate = 0.3
+    n = 0
     try:
-        selfControl.exit = True
-        selfControl.rate = 0.3
-        time.sleep(1)
         while True:
             time.sleep(0.3)
-            # sout.print(selfControl.myThreads, 'red')
             if not bool(selfControl.myThreads):
                 break
 
-            if selfControl.myThreads['Scheduler']:
-                if not stopping[0]:
-                    stopping[0] = True
+            if selfControl.myThreads['RestServer']:
+                if n < 1:
+                    log.debug("Stopping REST server")
+                    try:
+                        cnx = httpClient.HTTPConnection(cfg["rest"]["host"], cfg["rest"]["port"], timeout=12)
+                        cnx.request(method="GET", url='/a=stop?stop')
+                        cnx.getresponse()
+                    except Exception:
+                        pass
+                    n = 1
+                    continue
+            elif selfControl.myThreads['Scheduler']:
+                if n < 2:
                     log.debug("Stopping Scheduler thread")
                     scheduler.cmd = 'stop'
+                    n = 2
             elif selfControl.myThreads['Datastore']:
-                if not stopping[1]:
-                    stopping[1] = True
+                if n < 3:
                     log.debug("Stopping Datastore thread")
                     ds.close()
+                    n = 3
             else:
                 break
 
@@ -68,6 +75,7 @@ class SelfControl(Thread):
         super(SelfControl, self).__init__()
         self.name = 'SelfControl'
         self.myThreads = {
+            'RestServer': False,
             'Scheduler': False,
             'Datastore': False}
         self.allThreads = []
@@ -78,9 +86,11 @@ class SelfControl(Thread):
         self.start()
 
     def crash(self, s):
+        # TODO write in datastore error message
         log.critical(s)
         for i in self.myThreads:
-            log.error(f"Core Thread {i} is alive: {self.myThreads[i]}")
+            if not self.myThreads[i]:
+                log.critical(f"Core thread {i} is dead")
 
         log.debug('Calling shutdown')
         Thread(name="shutdown", target=shutdown_me, args=(1, '')).start()
@@ -158,8 +168,6 @@ def load_picker():
 
 if __name__ != "__main__":
     log.debug("Starting main thread")
-    # port = cfg['rest']['port']
-    # host = cfg['rest']['host']
 
     selfControl = SelfControl()
     ds = Datastore(f'{homeDir}lootnika_tasks_journal.db')
@@ -171,6 +179,9 @@ if __name__ != "__main__":
     scheduler = Scheduler(cfg['schedule']['tasks'], taskCycles, repeatMin, startTime)
     Picker = load_picker()
     Thread(name='Scheduler', target=scheduler.run, args=(Picker, )).start()
+
+    import restserv
+    Thread(name='RestServer', target=restserv.start_me,).start()
 
     if 'run' in sys.argv:
         # захват клавиатуры возможен лишь из консоли

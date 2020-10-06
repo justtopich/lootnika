@@ -4,7 +4,23 @@ Look for new version on [https://github.com/justtopich/](https://github.com/just
 
 
 
-## 0.4.0-dev.0 (20200930)
+## 0.5.0-dev.0 (20201006)
+
+### Features
+
+* REST API is coming -  AIOHTTP server included!
+
+### Improvements
+
+* `skipEmptyRows=True`  by default for **lootnika_mysql** picker
+
+### Notes
+
+REST API have only two commands: */a=getstatus*, */a=stop*. The first draft of documentation will be in next version.
+
+
+
+## 0.4.0-dev.1 (20200930)
 
 ### Features
 
@@ -31,7 +47,7 @@ Look for new version on [https://github.com/justtopich/](https://github.com/just
 
 ### Fixed
 
-* Lootnika marks identical documents as modified. Fixed by change calculating  document
+* Lootnika marks identical documents as modified. Fixed by change calculating  document hash
 
 * In the task beginning always have warning 
 
@@ -39,8 +55,8 @@ Look for new version on [https://github.com/justtopich/](https://github.com/just
 
 ### Improvements
 
-* Calculating  document hash only for meta fields, without header
-* Далнейшее разделение модулей. По аналогии с экпортом, сборщики подключаются как отдельный модуль. Теперь они располанаются в папке **pickers**
+* Calculating document hash only for meta fields, without header
+* Дальнейшее разделение модулей. По аналогии с экcпортом, сборщики подключаются как отдельный модуль. Теперь они располагаются в папке **pickers**
 
 
 

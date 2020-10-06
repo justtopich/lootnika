@@ -24,7 +24,6 @@ class Datastore(Thread):
             self.isMemory = True
         self.start()
 
-
     def run(self):
         cnx = self._create_db()
         cur = cnx.cursor()
@@ -195,7 +194,8 @@ class Datastore(Thread):
         return self.status
 
 
-    def close(self, commit:bool=True):
+    def close(self, commit=True):
+        # TODO закрывать через очередь
         self.execute("UPDATE lootnika SET self_status='shutdown successfully'")
         if commit:
             self.execute('--commit--')

@@ -14,7 +14,7 @@ class Exporter:
             "extension": "json",
             "path": "outgoing",
             "batchsize": "100",
-            "failPath": "send_failed/"
+            "failPath": "export_failed/"
         }
 
     def load_config(self, config: configparser) -> dict:

@@ -152,18 +152,18 @@ class TaskStore:
 
 class Document:
     """
-    Создание Lootnika Document - внутренний формат с котрым работают Factory и сборщики.
-    Представляет из себя обычный json c заголовком и телом fields в котором хранятся поля документа.
-    Хэш считается по полям из тела документа.
+    Lootnika Document. Factory can work only with this format.
+    It's just json with header and body - header field "fields". "fields" 
+    contain all your fields and they are used for custom processing and calculating hash
     """
     def __init__(self, taskName: str, reference: str, loootId: str, fields: dict):
         """
-        Создание документа и его референса
+        Creating document and his reference.
 
-        :param reference: шаблон создания reference
-        :param loootId: идентификатор документа в источнике.
-            Используется если по какой-то причине в fields
-            нету поля которое нужно для reference
+        :param reference: template to create reference
+        :param loootId: ID of the document in the source.
+            use for replacing @loot_id@ in reference if 
+            that's not in fields
         """
         try:
             assert isinstance(taskName, str)

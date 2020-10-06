@@ -19,9 +19,9 @@
 from __init__ import *
 
 
-devMod = False
-# devMod = True
-# sys.argv.append('run')  # only debug mode
+devMode = False
+# devMode = True
+# sys.argv.append('run')  # only for debug mode
 
 
 def svc_init():
@@ -63,7 +63,7 @@ def svc_init():
 
 if __name__ == "__main__":
     try:
-        if len(sys.argv) == 1 and not devMod:
+        if len(sys.argv) == 1 and not devMode:
             if homeDir.endswith('system32/'):
                 # Server 2012 != Win 10
                 homeDir = os.path.dirname(sys.executable) + '/' # Server 2012 != Win 10
@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 raise Exception('Show help')
             elif 'run' in sys.argv:
                 from conf import log, logRest, console
-                if devMod:
+                if devMode:
                     print('\n!#RUNNING IN DEVELOPER MODE\n')
                     log.setLevel(10)
                     logRest.setLevel(10)

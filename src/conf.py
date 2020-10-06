@@ -43,7 +43,7 @@ default = {
         "type": "lootnika_text",
         "format": "json",
         "batchSize": "100",
-        "failPath": "send_failed/",
+        "failPath": "export_failed/",
     },
     "schedule": {
         "enable": "False",
@@ -239,6 +239,9 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
         try:
             cfg['rest']['host'] = config.get("server", "host")
             cfg['rest']['port'] = config.getint("server", "port")
+
+            if cfg['rest']['host'] == '0.0.0.0':
+                cfg['rest']['host'] = '127.0.0.1'
 
             # используется в ресте. actions наполняется там же
             for role in cfg['rest']['userRole']:

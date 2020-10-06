@@ -4,21 +4,23 @@ import configparser
 import logging
 from logging import Logger
 from logging.handlers import RotatingFileHandler
-import time
 import datetime as dtime
+import time
 import re
 import signal
 import shutil
 import socket
+from http import client as httpClient
 from threading import Thread, Timer, enumerate as get_threads
 from subprocess import Popen, PIPE, STDOUT, DEVNULL
 from secrets import token_hex
+from queue import Queue
 from uuid import uuid4
 import traceback
-from queue import Queue
 # from urllib.parse import quote, unquote
 import copy
 import sqlite3
+import asyncio
 
 import orjson
 import dpath.util as dpath
@@ -26,12 +28,13 @@ import win32event
 import win32service
 import win32serviceutil
 import servicemanager
-import requests
+from aiohttp import web as aioweb
 from clickhouse_cityhash import cityhash
 
 
-__version__ = "0.4.0-dev.1"
+__version__ = "0.5.0-dev.0"
 pickerType = "lootnika_mysql"
+upTime = dtime.datetime.now()
 # Windows запускает модули exe из папки пользователя
 # Папка должна определяться только исполняемым файлом
 keys = os.path.split(os.path.abspath(os.path.join(os.curdir, __file__)))
@@ -45,36 +48,30 @@ else:
     dataDir = './'
 
 
-class Sout:
+def sout(self, msg, clr='white'):
     """
-    Colored print for debugging
+    :param clr: colors available: white|green|sun|violet|breeze|red
     """
-    def __init__(self):
-        self.color = {
-            'white': '\x1b[37m',
-            'green': '\x1b[0;30;32m',
-            'sun': '\033[93m',
-            'violet': '\x1b[0;30;35m',
-            'breeze': '\x1b[0;30;36m',
-            'red': '\x1b[0;30;31m'}
+    colors = {
+        'white': '\x1b[37m',
+        'green': '\x1b[0;30;32m',
+        'sun': '\033[93m',
+        'violet': '\x1b[0;30;35m',
+        'breeze': '\x1b[0;30;36m',
+        'red': '\x1b[0;30;31m'}
 
-    def print(self, msg, clr = 'white'):
-        """
-        :param clr: colors available: white|green|sun|violet|breeze|red
-        """
-        print(f"{self.color[clr]}{msg}\x1b[0m")
+    print(f"{colors[clr]}{msg}\x1b[0m")
 
 
-sout = Sout()
 __all__ = [
     'os', 'sys', 'servicemanager', 'traceback', 'RotatingFileHandler',
     'dtime', 'time', 'configparser', 're', 'logging', 'STDOUT', 'Queue',
     'shutil', 'signal', 'Thread', 'Timer', 'Popen', 'PIPE', 'DEVNULL',
     'get_threads', 'token_hex', 'uuid4', 'copy', 'Logger', 'socket',
-    'pickerType',
+    'pickerType', 'asyncio', 'httpClient', 'upTime',
 
     'win32event', 'win32service', 'win32serviceutil', 'win32event', 'sqlite3',
-    'requests', 'dpath', 'orjson', 'cityhash',
+    'dpath', 'orjson', 'cityhash', 'aioweb',
 
-    '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout'
+    '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout', 'pickerType'
 ]

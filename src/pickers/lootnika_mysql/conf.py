@@ -8,7 +8,7 @@ defaultCfg = {
             "DBscheme": "scheme",
             "DBusr": "user",
             "DBpsw": "password",
-            "skipEmptyRows": "False",
+            "skipEmptyRows": "True",
             "selectID": "SELECT some_uid AS loot_id FROM table1",
             "SelectFields0": "SELECT * FROM table2 where obj_id=@loot_id@"}
 
