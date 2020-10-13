@@ -4,6 +4,19 @@ Look for new version on [https://github.com/justtopich/](https://github.com/just
 
 
 
+## 0.6.0-dev.1 (20201013)
+
+### Features
+
+* Add help, but only for configuration parameters. Available at http://*host:port*/help
+* Add ACL for REST
+
+### Fixed
+
+* Lootnika not stopped if set `[server]host`  as `0.0.0.0` or `::1`
+
+
+
 ## 0.5.0-dev.0 (20201006)
 
 ### Features
