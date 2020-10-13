@@ -47,7 +47,7 @@ def svc_init():
                 log.info(f"starting...")
                 import core
             except Exception as e:
-                with open(homeDir+'error.txt', 'w') as f:
+                with open(f'{homeDir}error.txt', 'w') as f:
                     f.write(f"{traceback.format_exc()}")
                 os._exit(42)
 

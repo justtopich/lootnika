@@ -36,7 +36,12 @@ def shutdown_me(signum=1, frame=1):
                 if n < 1:
                     log.debug("Stopping REST server")
                     try:
-                        cnx = httpClient.HTTPConnection(cfg["rest"]["host"], cfg["rest"]["port"], timeout=12)
+                        if cfg["rest"]["host"] in ['::1', '0.0.0.0']:
+                            host = '127.0.0.1'
+                        else:
+                            host = cfg["rest"]["host"]
+
+                        cnx = httpClient.HTTPConnection(host, cfg["rest"]["port"], timeout=12)
                         cnx.request(method="GET", url='/a=stop?stop')
                         cnx.getresponse()
                     except Exception:

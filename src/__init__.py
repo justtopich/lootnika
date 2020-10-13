@@ -32,7 +32,7 @@ from aiohttp import web as aioweb
 from clickhouse_cityhash import cityhash
 
 
-__version__ = "0.5.0-dev.0"
+__version__ = "0.6.0-dev.0"
 pickerType = "lootnika_mysql"
 upTime = dtime.datetime.now()
 # Windows запускает модули exe из папки пользователя

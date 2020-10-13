@@ -9,15 +9,10 @@ from lootnika import (
     traceback)
 
 
-__all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dirs']
+__all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dirs', 'get_svc_params']
 cfg = {
     'diskUsage': {},
-    'rest': {
-        'userRole': {
-            'admin': {'users': 'AdminClients', 'actions': ''},
-            'query': {'users': 'QueryClients', 'actions': ''}
-        }
-    },
+    'rest': {},
     'exporters': {},
     'schedule': {}
 }
@@ -240,25 +235,27 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             cfg['rest']['host'] = config.get("server", "host")
             cfg['rest']['port'] = config.getint("server", "port")
 
-            if cfg['rest']['host'] == '0.0.0.0':
-                cfg['rest']['host'] = '127.0.0.1'
+            # field actions is used for GetStatus action, so they filling in restserver
+            acl = {
+                'admin': {'users': 'AdminClients', 'actions': ''},
+                'query': {'users': 'QueryClients', 'actions': ''}}
 
-            # используется в ресте. actions наполняется там же
-            for role in cfg['rest']['userRole']:
-                p = cfg['rest']['userRole'][role]['users']
-                val = config.get("server", p).strip()
-
+            for role in acl:
+                val = (config.get('server', acl[role]['users'])).strip()
                 if '*' in val:
-                    cfg['rest']['userRole'][role]['users'] = '*'
+                    acl[role]['users'] = '*'
                 elif val == '' or val == ';':
-                    raise Exception(f"Not set {p}")
+                    raise Exception(f"Not set {acl[role]['users']}")
                 elif ';' not in val:
-                    raise Exception(f'No delimiter ; in {p}')
+                    raise Exception(f"No delimiter <;> in {acl[role]['users']}")
                 else:
-                    cfg['rest']['userRole'][role]['users'] = [ip.strip() for ip in val.split(';') if ip != '']
+                    acl[role]['users'] = [ip.strip() for ip in val.split(';') if ip != '']
+                    acl[role]['users'].extend(['::1', 'localhost', '127.0.0.1', cfg['rest']['host']])
+                    acl[role]['users'] = set(acl[role]['users'])
 
+            cfg['rest']['acl'] = acl
         except Exception as e:
-            log.error("incorrect parameters in [Server]: %s" % e)
+            log.error(f"incorrect parameters in [Server]: {e}")
             time.sleep(3)
             raise SystemExit(1)
 
@@ -394,9 +391,9 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
 # TODO many endpoints
 def load_exporter(name: str) -> dict:
     """
+    load exporters what collected in verify_tasks
 
     :param name: exporter section. Default is "export"
-    :return:
     """
     log.debug(f"Enabled exporter: {name}")
     try:
@@ -444,6 +441,5 @@ if __name__ != '__main__':
     log, logRest, console = create_logger(config)
     cfg, exporters = verify_config(config, log)
 
-    # exporters are collected in verify_tasks
     for i in exporters:
         cfg = load_exporter(i)
