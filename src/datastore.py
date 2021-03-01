@@ -106,7 +106,7 @@ class Datastore(Thread):
                         count_differ        INTEGER  DEFAULT (0),
                         count_delete        INTEGER  DEFAULT (0),
                         count_task_error    INTEGER  DEFAULT (0),
-                        count_send_error    INTEGER  DEFAULT (0),
+                        count_export_error  INTEGER  DEFAULT (0),
                         last_doc_id         VARCHAR);
                     CREATE TRIGGER delete_till_100 INSERT ON tasks WHEN (SELECT count(*) FROM tasks)>100 
                     BEGIN

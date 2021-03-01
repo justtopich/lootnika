@@ -19,6 +19,8 @@
 from __init__ import *
 
 
+# stillWork = True  # disable shutdown
+stillWork = False
 devMode = False
 # devMode = True
 # sys.argv.append('run')  # only for debug mode

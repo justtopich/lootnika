@@ -1,23 +1,42 @@
 # Changelog
 
-Look for new version on [https://github.com/justtopich/](https://github.com/justtopich/)
+Check for the last version on [https://github.com/justtopich/](https://github.com/justtopich/)
 
 
 
-## 0.6.0-dev.1 (20201013)
+## 0.7.0-dev.0 (2021.03.01)
+
+### Features
+
+* REST API: add new command **schedule** 
+
+* Help updated
+
+* Made alternative paths for online help pages. This patch allow to show pages from pickers and exporters. If you change picker or exporter - online help will changed too.
+
+  Navigation is not changing yet
+
+### Fixes
+
+* **lootnika_text** exporter can't get default value for `batchSize`
+* config parser don't write configuration examples for some main sections
+
+
+
+## 0.6.0-dev.1 (2020.10.13)
 
 ### Features
 
 * Add help, but only for configuration parameters. Available at http://*host:port*/help
 * Add ACL for REST
 
-### Fixed
+### Fixes
 
 * Lootnika not stopped if set `[server]host`  as `0.0.0.0` or `::1`
 
 
 
-## 0.5.0-dev.0 (20201006)
+## 0.5.0-dev.0 (2020.10.06)
 
 ### Features
 
@@ -33,13 +52,13 @@ REST API have only two commands: */a=getstatus*, */a=stop*. The first draft of d
 
 
 
-## 0.4.0-dev.1 (20200930)
+## 0.4.0-dev.1 (2020.09.30)
 
 ### Features
 
 * Tasks can use different exporters
 
-### Fixed
+### Fixes
 
 * fail to create taskstore if it doesn't exist and set `overwritetaskstore=false`
 
@@ -73,7 +92,7 @@ REST API have only two commands: */a=getstatus*, */a=stop*. The first draft of d
 
 
 
-## 0.2.0-dev.0 (20200916)
+## 0.2.0-dev.0 (2020.09.16)
 
 ### Features
 
@@ -81,7 +100,7 @@ REST API have only two commands: */a=getstatus*, */a=stop*. The first draft of d
 * Added new fields to lootnika document header: **UUID**, **create_dtm**, **exporter**, **format**
 * New format **CSV** for `lootnika_text` exporter
 
-### Fixed
+### Fixes
 
 * Config parser erase comments in configuration file when write section
 * Неизменённые документы засчитывались как ошибка задания
@@ -97,7 +116,7 @@ REST API have only two commands: */a=getstatus*, */a=stop*. The first draft of d
 
 
 
-## 0.1.1.0 (20200905)
+## 0.1.1.0 (2020.09.05)
 
 ### Notes
 

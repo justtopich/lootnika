@@ -21,18 +21,16 @@ import traceback
 import copy
 import sqlite3
 import asyncio
+import types
 
 import orjson
 import dpath.util as dpath
-import win32event
-import win32service
-import win32serviceutil
-import servicemanager
+import aiohttp
 from aiohttp import web as aioweb
 from clickhouse_cityhash import cityhash
 
 
-__version__ = "0.6.0-dev.0"
+__version__ = "0.7.0-dev.0"
 pickerType = "lootnika_mysql"
 upTime = dtime.datetime.now()
 # Windows запускает модули exe из папки пользователя
@@ -48,7 +46,7 @@ else:
     dataDir = './'
 
 
-def sout(self, msg, clr='white'):
+def sout(msg, clr='white'):
     """
     :param clr: colors available: white|green|sun|violet|breeze|red
     """
@@ -64,14 +62,29 @@ def sout(self, msg, clr='white'):
 
 
 __all__ = [
-    'os', 'sys', 'servicemanager', 'traceback', 'RotatingFileHandler',
+    'os', 'sys', 'traceback', 'RotatingFileHandler',
     'dtime', 'time', 'configparser', 're', 'logging', 'STDOUT', 'Queue',
     'shutil', 'signal', 'Thread', 'Timer', 'Popen', 'PIPE', 'DEVNULL',
     'get_threads', 'token_hex', 'uuid4', 'copy', 'Logger', 'socket',
-    'pickerType', 'asyncio', 'httpClient', 'upTime',
+    'pickerType', 'asyncio', 'httpClient', 'upTime', 'types',
 
-    'win32event', 'win32service', 'win32serviceutil', 'win32event', 'sqlite3',
-    'dpath', 'orjson', 'cityhash', 'aioweb',
+    'sqlite3', 'dpath', 'orjson', 'cityhash', 'aioweb', 'aiohttp',
 
     '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout', 'pickerType'
 ]
+
+if os.name == "nt":
+    import win32event
+    import win32service
+    import win32serviceutil
+    import servicemanager
+
+    __all__.extend(['win32event', 'win32service', 'win32serviceutil', 'servicemanager'])
+    platform = 'nt'
+else:
+    # TODO supporting
+    # from deamonizer import Daemonize  # custom wrapper
+    __all__.append('Daemonize')
+    platform = 'posix'
+
+__all__.append('platform')

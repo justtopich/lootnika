@@ -171,7 +171,7 @@ class Document:
             assert isinstance(loootId, str)
             assert isinstance(fields, dict)
         except Exception:
-            raise Exception("Wrong incoming type")
+            raise ValueError("Wrong value type")
 
         self.reference = reference
         self.raw = {

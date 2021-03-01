@@ -1,4 +1,5 @@
 from lootnika import (
+    stillWork,
     time,
     signal,
     sout,
@@ -8,6 +9,7 @@ from lootnika import (
     homeDir,
     pickerType,
     httpClient,
+    platform,
     __version__)
 from conf import (
     cfg,
@@ -66,7 +68,8 @@ def shutdown_me(signum=1, frame=1):
     finally:
         selfControl.stop = True
         log.info("Lootnika stopped")
-        os._exit(1)
+        if not stillWork:
+            os._exit(1)
 
 
 class SelfControl(Thread):
@@ -90,7 +93,7 @@ class SelfControl(Thread):
         self.rate = 0.5           # частота проверки
         self.start()
 
-    def crash(self, s):
+    def crash(self, s: str) -> bool:
         # TODO write in datastore error message
         log.critical(s)
         for i in self.myThreads:
@@ -134,10 +137,11 @@ class SelfControl(Thread):
                 if not self.started:
                     if self.isVerified:
                         if sys.argv[0].lower().endswith('.exe'):
-                            log.info(f"Lootnika started - Executable version: {__version__}")
+                            log.info(f"Lootnika started - Executable version: {__version__}_{platform}")
                         else:
-                            log.info(f"Lootnika started - Source version: {__version__}")
+                            log.info(f"Lootnika started - Source version: {__version__}_{platform}")
 
+                        log.info(f"My documentation is available at http://localhost:{cfg['rest']['port']}/help")
                         ds.execute("UPDATE lootnika SET self_status='working'")
                         self.started = True
                         self.rate = 2 # уже можно реже смотреть

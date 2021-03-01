@@ -35,10 +35,7 @@ default = {
         "critFreeGb": "10"
     },
     "export": {
-        "type": "lootnika_text",
-        "format": "json",
-        "batchSize": "100",
-        "failPath": "export_failed/",
+        "type": "lootnika_text"
     },
     "schedule": {
         "enable": "False",
@@ -127,15 +124,15 @@ def write_section(section: str, params: dict) -> bool:
     return True
 
 
-def check_sections(config: configparser.RawConfigParser):
+def check_base_sections(config: configparser.RawConfigParser):
     edited = False
     try:
         for k in ['server', 'service', 'diskusage', 'schedule', 'logging']:
             if not config.has_section(k):
                 print(f"ERROR: no section {k}")
                 edited = write_section(k, default[k])
-                if k == 'schedule':
-                    write_section('example', default['example'])
+                # if k == 'schedule':
+                #     write_section('example', default['example'])
 
         if edited:
             print("WARNING: created new sections in config file. Restart me to apply them")
@@ -302,6 +299,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 tmp['tasks'] = None
             else:
                 tmp['tasks'] = {}
+                # TODO start=1
                 for n in range(tmp["taskCount"]):
                     tmp['tasks'][config.get("schedule", str(n)).lower()] = {}
 
@@ -370,6 +368,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 if config.has_option(taskName, 'exporter'):
                     task['exporter'] = config.get(taskName, 'exporter')
                 else:
+                    log.warning(f"Task {taskName} use default exporter=export")
                     task['exporter'] = "export"
 
                 exports.append(task['exporter'])
@@ -437,7 +436,7 @@ if __name__ != '__main__':
         raise SystemExit(-1)
 
     config = open_config()
-    check_sections(config)
+    check_base_sections(config)
     log, logRest, console = create_logger(config)
     cfg, exporters = verify_config(config, log)
 

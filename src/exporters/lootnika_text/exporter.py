@@ -13,8 +13,8 @@ class Exporter:
             "format": "json",
             "extension": "json",
             "path": "outgoing",
-            "batchsize": "100",
-            "failPath": "export_failed/"
+            "batchSize": "100",
+            "failPath": "export_failed"
         }
 
     def load_config(self, config: configparser) -> dict:

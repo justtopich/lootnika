@@ -1,6 +1,7 @@
 from lootnika import (
     time, dtime, sout,
     Timer,
+    Thread,
     traceback)
 from conf import log, console, create_task_logger, cfg
 from core import selfControl, shutdown_me, ds
@@ -38,7 +39,7 @@ class Scheduler:
     c возращением результата исполнения пользователю
     """
 
-    def __init__(self, taskList, taskCycles, repeatMin, startTime):
+    def __init__(self, taskList: dict, taskCycles: int, repeatMin: int, startTime: dtime):
         self.taskList = taskList
         self.taskCycles = taskCycles
         self.repeatMin = repeatMin
@@ -95,7 +96,7 @@ class Scheduler:
         resMem = ds.execute(
             "UPDATE tasks SET end_time='{}', status='{}' ,count_total={}, count_seen={},"
             " count_new={}, count_differ={}, count_delete={}, count_task_error={},"
-            "count_send_error={}, last_doc_id='{}' WHERE id={}"
+            "count_export_error={}, last_doc_id='{}' WHERE id={}"
                 .format(dtime.datetime.now().strftime("%d.%m.%Y %H:%M:%S"), status,
                         syncCount[0], syncCount[1], syncCount[2], syncCount[3],
                         syncCount[4], syncCount[5], syncCount[6], syncCount[7],
@@ -104,8 +105,7 @@ class Scheduler:
         if resMem != 0:
             raise Exception(f'Failed to create an entry in taskstore: {resMem}')
 
-
-    def _work_manager(self, taskName='', lastTask='', cmd=False):
+    def _work_manager(self, taskName: str = '', lastTask: str = '', cmd=False):
         """
         Обёртка исполнителя задания (Picker). Работает как таймер чтобы
         отложить запуск до заданного времени. Потому проверка статуса
@@ -189,14 +189,14 @@ class Scheduler:
                 if self.taskCycles > 0:
                     self.status = 'wait'
                     if self._isTaskTime():
-                        ht = timer_named('work_manager', 0, self._work_manager, )
+                        ht = Thread(name='work_manager', target=self._work_manager)
                         ht.start()
                         self.workers.append(ht)
                     # все последующие повторы отсчитываются от первого
             else:
                 if self.taskCycles > 0:
                     if self._isTaskTime():
-                        ht = timer_named('work_manager', 0, self._work_manager, )
+                        ht = Thread(name='work_manager', target=self._work_manager)
                         ht.start()
                         self.workers.append(ht)
 
@@ -220,7 +220,7 @@ class Scheduler:
         log.debug("Stopped Scheduler thread")
         return
 
-    def execute(self, cmd, taskName=''):
+    def execute(self, cmd: str, taskName: str =''):
         """интерфейс приёма команд от rest"""
         result = 'error'
         msg = ''
@@ -238,18 +238,21 @@ class Scheduler:
                         # и будет ждать время следующего старта. Тут определённо нужна очередь.
 
                     if taskName != '':
-                        task = self.get_task(taskName)
-                        if task == ():
+                        if taskName not in self.taskList:
                             msg = 'task is undefined'
                         else:
-                            ht = timer_named('work_manager', 0, self._work_manager, args=(task, self.curTask, True))
+                            ht = Thread(
+                                name='work_manager',
+                                target=self._work_manager,
+                                args=(taskName, self.curTask, True))
                             ht.start()
                             self.workers.append(ht)
                             result = 'ok'
                             msg = f'successfully started task {taskName}'
                     else:
-                        ht = timer_named(
-                            'work_manager', 0, self._work_manager,
+                        ht = Thread(
+                            name='work_manager',
+                            target=self._work_manager,
                             args=('', '', True))
                         ht.start()
                         self.workers.append(ht)
@@ -338,18 +341,6 @@ class Scheduler:
             if log.level == 10:
                 e = traceback.format_exc()
             log.error(f"Fail with task {taskName}: {e}")
-
-
-def timer_named(name, interval, function, *args, **kwargs):
-    # TODO рудимент
-    """
-    тот же таймер, только можно указать имя потока, т.к. сам таймер это тот же tread.
-
-    NOTE: сейчас планировщик сам проверяет время старта и запускает задание сразу
-    """
-    timer = Timer(interval, function, *args, **kwargs)
-    timer.name = name
-    return timer
 
 
 def first_start_calc(cfg: dict, onStart=True):
