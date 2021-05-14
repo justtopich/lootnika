@@ -1,0 +1,41 @@
+{
+  "files": {
+    "static/js/0.1ef92c70.chunk.js": "https://justtopich.github.io/lootnika/static/js/0.1ef92c70.chunk.js",
+    "static/js/0.1ef92c70.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/0.1ef92c70.chunk.js.map",
+    "static/js/1.3c9f679f.chunk.js": "https://justtopich.github.io/lootnika/static/js/1.3c9f679f.chunk.js",
+    "static/js/1.3c9f679f.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/1.3c9f679f.chunk.js.map",
+    "main.css": "https://justtopich.github.io/lootnika/static/css/main.da190d50.chunk.css",
+    "main.js": "https://justtopich.github.io/lootnika/static/js/main.0fc9bab8.chunk.js",
+    "main.js.map": "https://justtopich.github.io/lootnika/static/js/main.0fc9bab8.chunk.js.map",
+    "runtime-main.js": "https://justtopich.github.io/lootnika/static/js/runtime-main.e003b8ff.js",
+    "runtime-main.js.map": "https://justtopich.github.io/lootnika/static/js/runtime-main.e003b8ff.js.map",
+    "static/css/4.92c2f793.chunk.css": "https://justtopich.github.io/lootnika/static/css/4.92c2f793.chunk.css",
+    "static/js/4.6d83dc44.chunk.js": "https://justtopich.github.io/lootnika/static/js/4.6d83dc44.chunk.js",
+    "static/js/4.6d83dc44.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/4.6d83dc44.chunk.js.map",
+    "static/js/5.6215ac5c.chunk.js": "https://justtopich.github.io/lootnika/static/js/5.6215ac5c.chunk.js",
+    "static/js/5.6215ac5c.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/5.6215ac5c.chunk.js.map",
+    "static/js/6.9c887392.chunk.js": "https://justtopich.github.io/lootnika/static/js/6.9c887392.chunk.js",
+    "static/js/6.9c887392.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/6.9c887392.chunk.js.map",
+    "static/js/7.7f38ff0c.chunk.js": "https://justtopich.github.io/lootnika/static/js/7.7f38ff0c.chunk.js",
+    "static/js/7.7f38ff0c.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/7.7f38ff0c.chunk.js.map",
+    "static/js/8.452eb409.chunk.js": "https://justtopich.github.io/lootnika/static/js/8.452eb409.chunk.js",
+    "static/js/8.452eb409.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/8.452eb409.chunk.js.map",
+    "static/js/9.9b006917.chunk.js": "https://justtopich.github.io/lootnika/static/js/9.9b006917.chunk.js",
+    "static/js/9.9b006917.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/9.9b006917.chunk.js.map",
+    "static/js/10.8f35b742.chunk.js": "https://justtopich.github.io/lootnika/static/js/10.8f35b742.chunk.js",
+    "static/js/10.8f35b742.chunk.js.map": "https://justtopich.github.io/lootnika/static/js/10.8f35b742.chunk.js.map",
+    "index.html": "https://justtopich.github.io/lootnika/index.html",
+    "static/css/4.92c2f793.chunk.css.map": "https://justtopich.github.io/lootnika/static/css/4.92c2f793.chunk.css.map",
+    "static/css/main.da190d50.chunk.css.map": "https://justtopich.github.io/lootnika/static/css/main.da190d50.chunk.css.map",
+    "static/js/4.6d83dc44.chunk.js.LICENSE.txt": "https://justtopich.github.io/lootnika/static/js/4.6d83dc44.chunk.js.LICENSE.txt",
+    "static/js/5.6215ac5c.chunk.js.LICENSE.txt": "https://justtopich.github.io/lootnika/static/js/5.6215ac5c.chunk.js.LICENSE.txt",
+    "static/media/myico.b33e0c17.svg": "https://justtopich.github.io/lootnika/static/media/myico.b33e0c17.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.e003b8ff.js",
+    "static/css/4.92c2f793.chunk.css",
+    "static/js/4.6d83dc44.chunk.js",
+    "static/css/main.da190d50.chunk.css",
+    "static/js/main.0fc9bab8.chunk.js"
+  ]
+}

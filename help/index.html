@@ -1,0 +1,366 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html  lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    
+    <link rel="stylesheet" href="_static/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/Awesome5-all.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/topich-icons.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/style.css " type="text/css" />
+  </head>
+  <body>
+   <template id="hgh">
+      <div>
+          <h1>404 Not Found</h1>
+          Oops! :(
+      </div>
+    </template>
+    <template>
+      <my-table :config="config" :header="header" :data="data"></my-table>
+    </template>
+
+    <div id='app'>
+      <a v-scroll-to="'#vueTopPage'" id='goToTop'></a>
+      <div class="header" id='vueTopPage' onmouseover="headermouselog(1)">
+        <a class="brand-icon"><i class="icon-topich-chain-cicrle"></i></a>
+        <a class="header-brand">Lootnika Docs</a>
+
+		<div class="searchBar">
+			<form class="searchForm" role="search">
+			  <label for="search">Search for stuff</label>
+			  <input id="search" type="search" placeholder="Search..." autofocus autocomplete="off" />
+			  <button class="searchBtn" type="submit" v-on:click="find">Go</button>
+			<!-- <router-link tag="a" class="nav-sidebar-link" to="/search" id="a-search"></router-link> -->
+			<div class="searchResult">
+				<div class= "searchResult-row">
+					I'm not working yet. Sorry..
+				</div>
+			</div>
+			</form>
+		</div>
+        <!-- <router-link tag="a" class="nav-sidebar-link" to="/search" id="a-search"></router-link> -->
+
+          <div class="cs-loader" style="display: none">
+          <div class="cs-loader-inner">
+            <label>	●</label><label>	●</label><label>	●</label><label>	●</label><label>	●</label><label>	●</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-content" onmouseover="headermouselog(0)">
+      <div class="nav-sidebar">
+        <div class="nav-sidebar-inner">
+          <div class="list">
+            <h2>Навигация</h2>
+            <ul class='menu-root'>
+<!--              <router-link tag="li" to="/" exact><a class="nav-sidebar-link">Справка Lootnika</a></router-link>-->
+
+              
+                  <div class="hide">None</div>
+                  <router-link tag="li" to="/index"><a id="sa-index" class="nav-sidebar-link">Справка Lootnika</a></router-link>
+  
+  
+
+  <ul class="menu-sub">
+  
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/index/config"><a id="sa-index_config" class="nav-sidebar-link">Настройки</a></router-link>
+
+      
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/index/api"><a id="sa-index_api" class="nav-sidebar-link">Команды</a></router-link>
+
+      
+  </ul>
+                  <div class="hide">None</div>
+                  <router-link tag="li" to="/config"><a id="sa-config" class="nav-sidebar-link">Настройки</a></router-link>
+  
+  
+
+  <ul class="menu-sub">
+  
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_syntax"><a id="sa-config_config_syntax" class="nav-sidebar-link">Синтаксис настроек</a></router-link>
+
+      
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_server"><a id="sa-config_config_server" class="nav-sidebar-link">Секция Server</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_server#host'" to="/config/config_server#host">
+            <a id="sa-config_config_server#host" class="nav-sidebar-link">Host</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_server#port'" to="/config/config_server#port">
+            <a id="sa-config_config_server#port" class="nav-sidebar-link">Port</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_server#queryclients'" to="/config/config_server#queryclients">
+            <a id="sa-config_config_server#queryclients" class="nav-sidebar-link">QueryClients</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_server#adminclients'" to="/config/config_server#adminclients">
+            <a id="sa-config_config_server#adminclients" class="nav-sidebar-link">AdminClients</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_service"><a id="sa-config_config_service" class="nav-sidebar-link">Секция Service</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_service#name'" to="/config/config_service#name">
+            <a id="sa-config_config_service#name" class="nav-sidebar-link">Name</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_service#displayname'" to="/config/config_service#displayname">
+            <a id="sa-config_config_service#displayname" class="nav-sidebar-link">DisplayName</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_service#description'" to="/config/config_service#description">
+            <a id="sa-config_config_service#description" class="nav-sidebar-link">Description</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_logging"><a id="sa-config_config_logging" class="nav-sidebar-link">Секция Logging</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_logging#enable'" to="/config/config_logging#enable">
+            <a id="sa-config_config_logging#enable" class="nav-sidebar-link">Enable</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_logging#loglevel'" to="/config/config_logging#loglevel">
+            <a id="sa-config_config_logging#loglevel" class="nav-sidebar-link">LogLevel</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_logging#logmaxsizekbs'" to="/config/config_logging#logmaxsizekbs">
+            <a id="sa-config_config_logging#logmaxsizekbs" class="nav-sidebar-link">LogMaxSizeKbs</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_logging#logmaxfiles'" to="/config/config_logging#logmaxfiles">
+            <a id="sa-config_config_logging#logmaxfiles" class="nav-sidebar-link">LogMaxFiles</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_diskUsage"><a id="sa-config_config_diskUsage" class="nav-sidebar-link">Секция DiskUsage</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_diskUsage#pathwatch'" to="/config/config_diskUsage#pathwatch">
+            <a id="sa-config_config_diskUsage#pathwatch" class="nav-sidebar-link">PathWatch</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_diskUsage#critfreegb'" to="/config/config_diskUsage#critfreegb">
+            <a id="sa-config_config_diskUsage#critfreegb" class="nav-sidebar-link">CritFreeGb</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_schedule"><a id="sa-config_config_schedule" class="nav-sidebar-link">Секция Schedule</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_schedule#enable'" to="/config/config_schedule#enable">
+            <a id="sa-config_config_schedule#enable" class="nav-sidebar-link">Enable</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_schedule#taskstarttime'" to="/config/config_schedule#taskstarttime">
+            <a id="sa-config_config_schedule#taskstarttime" class="nav-sidebar-link">TaskStartTime</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_schedule#taskcycles'" to="/config/config_schedule#taskcycles">
+            <a id="sa-config_config_schedule#taskcycles" class="nav-sidebar-link">TaskCycles</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_schedule#repeatmin'" to="/config/config_schedule#repeatmin">
+            <a id="sa-config_config_schedule#repeatmin" class="nav-sidebar-link">RepeatMin</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_schedule#taskcount'" to="/config/config_schedule#taskcount">
+            <a id="sa-config_config_schedule#taskcount" class="nav-sidebar-link">TaskCount</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_export"><a id="sa-config_config_export" class="nav-sidebar-link">Секция Export</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_export#type'" to="/config/config_export#type">
+            <a id="sa-config_config_export#type" class="nav-sidebar-link">Type</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_export#format'" to="/config/config_export#format">
+            <a id="sa-config_config_export#format" class="nav-sidebar-link">Format</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_export#extension'" to="/config/config_export#extension">
+            <a id="sa-config_config_export#extension" class="nav-sidebar-link">Extension</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_export#batchsize'" to="/config/config_export#batchsize">
+            <a id="sa-config_config_export#batchsize" class="nav-sidebar-link">BatchSize</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_export#delimiter'" to="/config/config_export#delimiter">
+            <a id="sa-config_config_export#delimiter" class="nav-sidebar-link">Delimiter</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_export#path'" to="/config/config_export#path">
+            <a id="sa-config_config_export#path" class="nav-sidebar-link">Path</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_export#failpath'" to="/config/config_export#failpath">
+            <a id="sa-config_config_export#failpath" class="nav-sidebar-link">FailPath</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/config/config_task"><a id="sa-config_config_task" class="nav-sidebar-link">Секция Task</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/config/config_task#exporter'" to="/config/config_task#exporter">
+            <a id="sa-config_config_task#exporter" class="nav-sidebar-link">Exporter</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#overwritetaskstore'" to="/config/config_task#overwritetaskstore">
+            <a id="sa-config_config_task#overwritetaskstore" class="nav-sidebar-link">OverwriteTaskstore</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#dbhost'" to="/config/config_task#dbhost">
+            <a id="sa-config_config_task#dbhost" class="nav-sidebar-link">DBhost</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#dbport'" to="/config/config_task#dbport">
+            <a id="sa-config_config_task#dbport" class="nav-sidebar-link">DBport</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#dbscheme'" to="/config/config_task#dbscheme">
+            <a id="sa-config_config_task#dbscheme" class="nav-sidebar-link">DBscheme</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#dbusr'" to="/config/config_task#dbusr">
+            <a id="sa-config_config_task#dbusr" class="nav-sidebar-link">DBusr</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#dbpsw'" to="/config/config_task#dbpsw">
+            <a id="sa-config_config_task#dbpsw" class="nav-sidebar-link">DBpsw</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#id2'" to="/config/config_task#id2">
+            <a id="sa-config_config_task#id2" class="nav-sidebar-link">DBusr</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#skipemptyrows'" to="/config/config_task#skipemptyrows">
+            <a id="sa-config_config_task#skipemptyrows" class="nav-sidebar-link">SkipEmptyRows</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#docref'" to="/config/config_task#docref">
+            <a id="sa-config_config_task#docref" class="nav-sidebar-link">DocRef</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#selectid'" to="/config/config_task#selectid">
+            <a id="sa-config_config_task#selectid" class="nav-sidebar-link">SelectID</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#id3'" to="/config/config_task#id3">
+            <a id="sa-config_config_task#id3" class="nav-sidebar-link">SelectFields</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#branchname'" to="/config/config_task#branchname">
+            <a id="sa-config_config_task#branchname" class="nav-sidebar-link">BranchName</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/config/config_task#id6'" to="/config/config_task#id6">
+            <a id="sa-config_config_task#id6" class="nav-sidebar-link">SelectBranch</a>
+          </router-link>
+        </ul>
+  </ul>
+                  <div class="hide">None</div>
+                  <router-link tag="li" to="/api"><a id="sa-api" class="nav-sidebar-link">Команды</a></router-link>
+  
+  
+
+  <ul class="menu-sub">
+  
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/api/api_syntax"><a id="sa-api_api_syntax" class="nav-sidebar-link">Синтаксис команд</a></router-link>
+
+      
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/api/api_common"><a id="sa-api_api_common" class="nav-sidebar-link">Общие команды</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/api/api_common#getstatus'" to="/api/api_common#getstatus">
+            <a id="sa-api_api_common#getstatus" class="nav-sidebar-link">GetStatus</a>
+          </router-link>
+        </ul>
+
+    <div class="hide">None</div>
+    <router-link tag="li" to="/api/api_control"><a id="sa-api_api_control" class="nav-sidebar-link">Контрольные команды</a></router-link>
+
+      
+        <ul>
+        
+          <router-link tag="li" v-scroll-to="'/api/api_control#stop'" to="/api/api_control#stop">
+            <a id="sa-api_api_control#stop" class="nav-sidebar-link">Stop</a>
+          </router-link>
+          <router-link tag="li" v-scroll-to="'/api/api_control#schedule'" to="/api/api_control#schedule">
+            <a id="sa-api_api_control#schedule" class="nav-sidebar-link">Schedule</a>
+          </router-link>
+        </ul>
+  </ul>
+
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div id="content-guide" >
+        <transition mode="out-in">
+          <router-view></router-view>
+        </transition>
+        <footer class="footer">
+          <div class="md-footer-copyright">
+            Created using <a href="http://www.sphinx-doc.org/">Sphinx</a>
+            3.3.1 and
+            <a href="https://github.com/justtopich/sphinx_lootnika_theme">Lootnika theme for Sphinx</a>
+           </div>
+        </footer>
+      </div>
+    </div>
+    </div>
+
+<script type="text/javascript">
+function get_routes() {
+ return [
+   
+    { path: '*', component: NotFoundPage }, 
+    { path: '/', component: httpVueLoader('index.vue') }, 
+    { path: '/index', component: httpVueLoader('index.vue') }, 
+    { path: '/index/config', component: httpVueLoader('config.vue') }, 
+    { path: '/index/api', component: httpVueLoader('api.vue') }, 
+    { path: '/config', component: httpVueLoader('config.vue') }, 
+    { path: '/config/config_syntax', component: httpVueLoader('config_syntax.vue') }, 
+    { path: '/config/config_server', component: httpVueLoader('config_server.vue') }, 
+    { path: '/config/config_service', component: httpVueLoader('config_service.vue') }, 
+    { path: '/config/config_logging', component: httpVueLoader('config_logging.vue') }, 
+    { path: '/config/config_diskUsage', component: httpVueLoader('config_diskUsage.vue') }, 
+    { path: '/config/config_schedule', component: httpVueLoader('config_schedule.vue') }, 
+    { path: '/config/config_export', component: httpVueLoader('config_export.vue') }, 
+    { path: '/config/config_task', component: httpVueLoader('config_task.vue') }, 
+    { path: '/api', component: httpVueLoader('api.vue') }, 
+    { path: '/api/api_syntax', component: httpVueLoader('api_syntax.vue') }, 
+    { path: '/api/api_common', component: httpVueLoader('api_common.vue') }, 
+    { path: '/api/api_control', component: httpVueLoader('api_control.vue') }, 
+ ]}
+</script>
+
+
+
+    <!--<script src="_static/documentation_options.js"></script>-->
+    <script src="_static/js/vue.js"></script>
+    <script src="_static/plugins/vue-router.min.js"></script>
+    <script src="_static/plugins/httpVueLoader.min.js"></script>
+    <script src="_static/plugins/vue-scrollto.js"></script>
+    <!-- <script src="_static/plugins/vuebar.js"></script> -->
+    <script src="_static/js/routes.js"></script>
+    <script src="_static/js/help.js"></script>
+
+  </body>
+</html>

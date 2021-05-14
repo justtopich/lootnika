@@ -1,12 +1,6 @@
-# Lootnika
+# Lootnika: Demo 
 
-Lootnika can extract data from SQL databases, transform and save in another storage in another format. Support full or incremental data collecting.
+This is online demo of Lootnika control panel and help documentation.
 
-You can configure several different tasks with their own source and collect parameters. Lootnika have tasks scheduler, logging and web GUI. Also have control and monitoring  by RESP API. 
-
-
-
-------
-
-alex1.beloglazov@yandex.ru
+Control panel and Help is two different SPA and available at **/admin** and **/help** links
 
