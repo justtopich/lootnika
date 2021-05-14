@@ -269,6 +269,8 @@ if __name__ != "__main__":
 
     aclPolicy = ACLpolicy(routes, cfg['rest']['acl'])
     routes.static('/help', f'{homeDir}webui/help/html', append_version=devMode)
+    routes.static('/admin', f'{homeDir}webui/admin/html', append_version=devMode)
+    routes.static('/static', f'{homeDir}webui/admin/html/static', append_version=devMode)
     app.add_routes(routes)
 
     # TODO AppRunner вызывает свой луп, есть ли смысл в ProactorEventLoop?

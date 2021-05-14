@@ -4,6 +4,20 @@ Check for the last version on [https://github.com/justtopich/](https://github.co
 
 
 
+## 0.8.0-beta.0 (2021.05.14)
+
+### Features
+
+* Add web admin panel! Available at http://*host:port*/admin
+
+
+### Fixes
+
+* add `CORS` for all API headers (maybe can be removed at release)
+* API cmd `schedule` can return wrong message
+
+
+
 ## 0.7.0-dev.0 (2021.03.01)
 
 ### Features
@@ -71,7 +85,7 @@ REST API have only two commands: */a=getstatus*, */a=stop*. The first draft of d
 
 
 
-## 0.3.0-dev.0 (20200923)
+## 0.3.0-dev.0 (2020.09.23)
 
 ### Features
 

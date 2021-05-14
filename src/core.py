@@ -141,7 +141,7 @@ class SelfControl(Thread):
                         else:
                             log.info(f"Lootnika started - Source version: {__version__}_{platform}")
 
-                        log.info(f"My documentation is available at http://localhost:{cfg['rest']['port']}/help")
+                        log.info(f"Welcome to http://localhost:{cfg['rest']['port']}/admin")
                         ds.execute("UPDATE lootnika SET self_status='working'")
                         self.started = True
                         self.rate = 2 # уже можно реже смотреть

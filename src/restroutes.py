@@ -18,7 +18,6 @@ from restserv import get_client_role, taskListCopy
 
 routes = aioweb.RouteTableDef()
 
-
 @routes.get('/a=getstatus', role=['query', 'admin'])
 async def handler(request):
     data = {'status': 'error', 'message': ''}
@@ -60,13 +59,23 @@ async def handler(request):
         logRest.error(e)
         data['message'] = e
     finally:
-        return aioweb.json_response(data, status=status)
+        return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
 
+@routes.get('/favicon.ico', role=['query','admin'])
+async def grl(request):
+    return aioweb.FileResponse('webui/admin/html/favicon.ico')
 
 @routes.get('/help', role=['query','admin'])
 async def grl(request):
     raise aioweb.HTTPFound('/help/index.html')
 
+@routes.get('/admin', role=['admin'])
+async def handler(request):
+    return aioweb.FileResponse('webui/admin/html/index.html')
+
+@routes.get('/admin/{view:.*}', role=['admin'])
+async def handler(request):
+    return aioweb.FileResponse('webui/admin/html/index.html')
 
 @routes.get('/a=schedule', role=['admin'])
 async def handler(request):
@@ -129,6 +138,7 @@ async def handler(request):
                         task[desc[n]] = col
                     data['tasks'].append(task)
 
+                data['status'] = 'ok'
                 data['message'] = f"returned {len(data['tasks'])} tasks"
             except Exception as e:
                 raise Exception(f'Command {cmd} is failed: {e}')
@@ -141,7 +151,7 @@ async def handler(request):
         else:
             raise Warning('Command undefined')
 
-        data['status'] = 'ok'
+#        data['status'] = 'ok'
         status = 200
     except Warning as w:
         status = 400
@@ -155,9 +165,7 @@ async def handler(request):
         logRest.error(e)
         data['message'] = e
     finally:
-        return aioweb.json_response(data, status=status)
-
-
+        return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
 
 
 @routes.get('/{lol}')

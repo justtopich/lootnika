@@ -11,7 +11,7 @@ Key futures:
 * Data transform 
 * web GUI
 * REST API
-* One point configuration for all task and other setting
+* Single point setup for all task and other settings
 * Simple control and monitoring with logging and API 
 
 
@@ -22,7 +22,7 @@ Only what you need is create the picker for your data source and documents expor
 
 **Pickers** are connecting to source and collecting data. You do not need monitoring data changes, make schedule and e.t.c. Take a data and push them into Lootnika core in json format.
 
-**Exporter** -  you can save data in another storage. Just write what need do with json document from input.
+**Exporter** -  you can save data in another storage. Just write what need to do with json document from input.
 
 <u>This tool is also in developing stage!</u> For production usage see something like NiFi or other.
 
