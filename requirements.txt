@@ -10,3 +10,6 @@ mysql-connector-python>=8.0.21
 orjson>=3.3.1
 dpath>=2.0.1
 clickhouse_cityhash>=1.0.2.3
+bson>=0.5.10
+psutil>=5.8.0
+sphinx>=3.3.1

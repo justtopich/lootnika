@@ -8,7 +8,7 @@ from lootnika import (
     Thread,
     asyncio,
     aioweb)
-from core import shutdown_me, traceback, scheduler, ds
+from core import shutdown_me, traceback, scheduler, ds, selfControl
 from conf import (
     homeDir,
     logRest,
@@ -26,12 +26,15 @@ async def handler(request):
         data['product'] = 'Lootnika data collector'
         data['picker_type'] = pickerType
         data['version'] = __version__
-        data['uptime'] = str(dtime.datetime.now() - upTime).split('.')[0]
         data['service_name'] = get_svc_params()[0]
         data['directory'] = homeDir
         data['client_host'] = request.remote
         data['client_role'] = get_client_role(request.remote)
         data['status'] = 'ok'
+        data['uptime'] = str(dtime.datetime.now() - upTime).split('.')[0]
+        data['pid'] = selfControl.pid
+        data['pid_user'] = selfControl.pidUser
+        data['resource_usage'] = selfControl.resourcesUsage
         status = 200
     except Exception as e:
         e = str(e)
@@ -39,7 +42,6 @@ async def handler(request):
         data['message'] = e
     finally:
         return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
-
 
 @routes.get('/a=stop', role=['admin'])
 async def handler(request):
@@ -71,11 +73,11 @@ async def grl(request):
 
 @routes.get('/admin', role=['admin'])
 async def handler(request):
-    return aioweb.FileResponse('webui/admin/html/index.html')
+    return aioweb.FileResponse(f'{homeDir}webui/admin/html/index.html')
 
 @routes.get('/admin/{view:.*}', role=['admin'])
 async def handler(request):
-    return aioweb.FileResponse('webui/admin/html/index.html')
+    return aioweb.FileResponse(f'{homeDir}webui/admin/html/index.html')
 
 @routes.get('/a=schedule', role=['admin'])
 async def handler(request):

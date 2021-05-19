@@ -253,11 +253,11 @@ if __name__ != "__main__":
 
     taskListCopy = copy.deepcopy(cfg['schedule']['tasks'])
 
-    ls = [f'{homeDir}pickers/{pickerType}/webui/help/html']
-    for i in cfg['exporters'].values():
-        if i.type not in ls:
-            ls.append(f'{homeDir}exporters/{i.type}/webui/help/html')
-    patch_aiostatic({'/help': ls})
+    # ls = [f'{homeDir}pickers/{pickerType}/webui/help/html']
+    # for i in cfg['exporters'].values():
+    #     if i.type not in ls:
+    #         ls.append(f'{homeDir}exporters/{i.type}/webui/help/html')
+    # patch_aiostatic({'/help': ls})
 
     app = aioweb.Application(
         debug=devMode,

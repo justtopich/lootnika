@@ -10,11 +10,13 @@ from lootnika import (
     pickerType,
     httpClient,
     platform,
+    psutil,
     __version__)
 from conf import (
     cfg,
     log)
 from datastore import Datastore
+import sphinxbuilder
 
 
 def shutdown_me(signum=1, frame=1):
@@ -87,6 +89,12 @@ class SelfControl(Thread):
             'Scheduler': False,
             'Datastore': False}
         self.allThreads = []
+        self.pid = os.getpid()
+        self.pidUser =  psutil.Process(self.pid).username()
+        self.resourcesUsage = {
+            "ram": {},
+            "cpu": 0.0
+        }
         self.isVerified = False   # все модули работают
         self.started = False      # все модули запустились
         self.exit = False         # игнорит убитые модули
@@ -109,10 +117,16 @@ class SelfControl(Thread):
         for i in get_threads():
             self.allThreads.append(i.name)
 
+    def resources_usage(self):
+        self.resourcesUsage['ram'] = dict(psutil.virtual_memory()._asdict())
+        self.resourcesUsage['ram']['lootnika_percent'] = round(psutil.Process(self.pid).memory_percent(), 2)
+        self.resourcesUsage['cpu'] = psutil.cpu_percent(interval=None)
+
     def run(self):
         n = 1
         crash = False     # при краше нужно только обновлтяь статусы потоков
         while True:
+            self.resources_usage()
             self.threads_names()
 
             # for i in get_threads():
@@ -180,6 +194,8 @@ if __name__ != "__main__":
 
     selfControl = SelfControl()
     ds = Datastore(f'{homeDir}lootnika_tasks_journal.db')
+
+    sphinxbuilder.check_rst(ds)
 
     from scheduler import Scheduler, first_start_calc
     startTime, taskCycles, repeatMin = first_start_calc(cfg['schedule'])

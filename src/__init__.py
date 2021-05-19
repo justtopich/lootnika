@@ -11,6 +11,7 @@ import signal
 import shutil
 import socket
 from http import client as httpClient
+from collections import OrderedDict
 from threading import Thread, Timer, enumerate as get_threads
 from subprocess import Popen, PIPE, STDOUT, DEVNULL
 from secrets import token_hex
@@ -24,14 +25,17 @@ import asyncio
 import types
 
 import orjson
+import bson
 import dpath.util as dpath
 import aiohttp
 from aiohttp import web as aioweb
 from clickhouse_cityhash import cityhash
+import psutil
+import sphinx
 
 
-__version__ = "0.8.0-beta.0"
-pickerType = "lootnika_mysql"
+__version__ = "1.0.0-beta.0"
+pickerType = "lootnika_pyodbc"
 upTime = dtime.datetime.now()
 # Windows запускает модули exe из папки пользователя
 # Папка должна определяться только исполняемым файлом
@@ -67,8 +71,10 @@ __all__ = [
     'shutil', 'signal', 'Thread', 'Timer', 'Popen', 'PIPE', 'DEVNULL',
     'get_threads', 'token_hex', 'uuid4', 'copy', 'Logger', 'socket',
     'pickerType', 'asyncio', 'httpClient', 'upTime', 'types',
+    'OrderedDict',
 
-    'sqlite3', 'dpath', 'orjson', 'cityhash', 'aioweb', 'aiohttp',
+    'sqlite3', 'dpath', 'orjson', 'cityhash', 'aioweb', 'aiohttp', 'bson',
+    'psutil', 'sphinx',
 
     '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout', 'pickerType'
 ]

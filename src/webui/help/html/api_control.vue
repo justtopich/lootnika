@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div class="section" id="id1">
+    
+    <section id="id1">
 <h1>Контрольные команды<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h1>
 <p>Команды, которые используются для контроля работы Лутники.</p>
 <div class="contents local topic" id="id2">
@@ -17,37 +18,37 @@
 </li>
 </ul>
 </div>
-<div class="section" id="stop">
+<section id="stop">
 <h2>Stop<a class="headerlink" href="#stop" title="Ссылка на этот заголовок">¶</a></h2>
 <p>Остановка Лутники.</p>
 <p>Настоятельно рекомендуется останавливать Лутнику либо через службу, либо данной командой, либо через консоль комбинацией <kbd class="kbd docutils literal notranslate">ctrl</kbd> + <kbd class="kbd docutils literal notranslate">c</kbd>.
 При штатной остановке Лутники прекращает выполнять задания, экспортирует документы которые успел получить и сохраняет все данные в журнал заданий.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">stop</span>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">stop</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="schedule">
+</section>
+<section id="schedule">
 <h2>Schedule<a class="headerlink" href="#schedule" title="Ссылка на этот заголовок">¶</a></h2>
 <p>Управление заданиями.</p>
 <p>Вы можете запускать и останавливать задания, а так же следить за ходом их выполнения.
 Все команды планировщика задания задаются в параметре <code class="xref std std-option docutils literal notranslate"><span class="pre">cmd</span></code></p>
-<div class="section" id="schedule-tasksinfo">
+<section id="schedule-tasksinfo">
 <h3>Schedule: TasksInfo<a class="headerlink" href="#schedule-tasksinfo" title="Ссылка на этот заголовок">¶</a></h3>
 <p>Получение заданий и их параметров.</p>
-<p>Лутника вернёт только те задания, которые объявлены в секции <router-link class="reference internal" href="/config/config_schedule" to="/config/config_schedule"><span class="doc">Schedule</span></router-link>.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">TasksInfo</span>
+<p>Лутника вернёт только те задания, которые объявлены в секции <router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule"><span class="doc">Schedule</span></router-link>.</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">TasksInfo</span>
 </pre></div>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Предупреждение</p>
 <p>Параметры заданий могут отличаться от таковых в настройках. Такое происходит после инициализации задания и нужны для работы Лутники. В настройках эти изменения не сохраняются.</p>
 </div>
-</div>
-<div class="section" id="schedule-queueinfo">
+</section>
+<section id="schedule-queueinfo">
 <h3>Schedule: QueueInfo<a class="headerlink" href="#schedule-queueinfo" title="Ссылка на этот заголовок">¶</a></h3>
 <p>Просмотр журнал заданий.</p>
-<p>Получение списка завершённых и текущих заданий, их статуса и прогресса выполнения. По умолчанию вернёт 50 последних записей.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">QueueInfo</span><span class="o">&amp;</span><span class="ow">limit=</span><span class="mi">100</span>
+<p>Получение списка завершённых и текущих заданий, их статуса и прогресса выполнения. По умолчанию вернёт 20 последних записей.</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">QueueInfo</span><span class="o">&amp;</span><span class="ow">limit=</span><span class="mi">100</span>
 </pre></div>
 </div>
 <dl class="simple">
@@ -99,7 +100,7 @@
 </tr>
 </tbody>
 </table>
-<p>Поле <code class="docutils literal notranslate"><span class="pre">tasks</span></code> содержит объекты со следующим набором полей:</p>
+<p>Объект <code class="docutils literal notranslate"><span class="pre">tasks</span></code> содержит объекты со следующим набором полей:</p>
 <table class="colwidths-given docutils align-default">
 <colgroup>
 <col style="width: 25%"/>
@@ -177,43 +178,44 @@
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="schedule-start">
+</section>
+<section id="schedule-start">
 <h3>Schedule: Start<a class="headerlink" href="#schedule-start" title="Ссылка на этот заголовок">¶</a></h3>
 <p>Старт или возобновление заданий.</p>
-<p>Запускает цикл заданий, даже если расписание выключено (см. <router-link class="reference internal" href="/config/config_schedule" to="/config/config_schedule"><span class="doc">Schedule</span></router-link> ). Выполнение этих заданий произойдёт один раз в порядке, указанном в настройках.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Start</span>
+<p>Запускает цикл заданий, даже если расписание выключено (см. <router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule"><span class="doc">Schedule</span></router-link> ). Выполнение этих заданий произойдёт один раз в порядке, указанном в настройках.</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Start</span>
 </pre></div>
 </div>
 <p>Используя параметр <code class="xref std std-option docutils literal notranslate"><span class="pre">TaskName</span></code> можно запустить одну конкретную задачу:</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Start</span><span class="o">&amp;</span><span class="ow">TaskName=</span><span class="n">FuriKuri</span>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Start</span><span class="o">&amp;</span><span class="ow">TaskName=</span><span class="n">FuriKuri</span>
 </pre></div>
 </div>
 <p>Этот параметр обязателен при возобновлении задания.</p>
 <div class="admonition attention">
 <p class="admonition-title">Внимание</p>
-<p>Счётчик выполнений <router-link class="reference internal" href="/config/config_schedule" to="/config/config_schedule"><span class="doc">Schedule: TaskCycles</span></router-link> не учитывает задания запущенные таким образом.</p>
+<p>Счётчик выполнений <router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule"><span class="doc">Schedule: TaskCycles</span></router-link> не учитывает задания запущенные таким образом.</p>
 </div>
-</div>
-<div class="section" id="schedule-pause">
+</section>
+<section id="schedule-pause">
 <h3>Schedule: Pause<a class="headerlink" href="#schedule-pause" title="Ссылка на этот заголовок">¶</a></h3>
 <p>Приостановка выполнения заданий.</p>
-<p>Приостановка выполняется на неограниченное время, однако, отсчёт времени старта до следующего цикла продолжается. Если наступит время выполнения очередного цикла задания во время паузы - запуск будет засчитан счётчиком заданий <router-link class="reference internal" href="/config/config_schedule" to="/config/config_schedule"><span class="doc">TaskCycles</span></router-link>, но цикл будет пропущен, т.к. Лутника не может выполнять несколько заданий одновременно.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Pause</span>
+<p>Приостановка выполняется на неограниченное время, однако, отсчёт времени старта до следующего цикла продолжается. Если наступит время выполнения очередного цикла задания во время паузы - запуск будет засчитан счётчиком заданий <router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule"><span class="doc">TaskCycles</span></router-link>, но цикл будет пропущен, т.к. Лутника не может выполнять несколько заданий одновременно.</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Pause</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="schedule-cancel">
+</section>
+<section id="schedule-cancel">
 <h3>Schedule: Cancel<a class="headerlink" href="#schedule-cancel" title="Ссылка на этот заголовок">¶</a></h3>
 <p>Отмена выполнения заданий.</p>
 <p>Если во время отмены выполняется задание из цикла, будет прерван весь цикл.
 При отмене Лутника выполнит экспорт всех документов что успела собрать, но при этом не будет отправлять команду на удаление старых документов из источника.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">action=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Cancel</span>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">Cancel</span>
 </pre></div>
 </div>
-</div>
-</div>
-
+</section>
+</section>
+</section>
+    <div></div>
     <div id='vueBottomPage'></div>
     </div>
   </div>

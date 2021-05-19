@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div class="section" id="lootnika">
+    
+    <section id="lootnika">
 <h1>Справка Lootnika<a class="headerlink" href="#lootnika" title="Ссылка на этот заголовок">¶</a></h1>
 <p>Lootnika Data Collector является ETL-инструментом, со всеми основными базовыми возможностями:</p>
 <ul class="simple">
@@ -19,7 +20,7 @@
 <li><p>планировщик заданий</p></li>
 <li><p>REST API</p></li>
 </ul>
-<div class="section" id="id1">
+<section id="id1">
 <h2>Введение<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h2>
 <p>Lootnika - это модель для сборки типичных ETL решений. Имея модульную архитектуру и предоставляя базовые функции, можно ускорить разработку сосредоточившись лишь на описание коннектора к источнику данных, их преобразованию и экспорта в другие системы.
 Схожие принципы используются в Apach NiFi, потому, если вы ищите enterprise-ready solution, то стоит обратить своё внимание на него.</p>
@@ -31,8 +32,9 @@
 <p>По замечаниям, найденным ошибкам или предложениям пишите на почту <a class="reference external" href="mailto:alex1.beloglazov%40yandex.ru">alex1<span>.</span>beloglazov<span>@</span>yandex<span>.</span>ru</a></p>
 <div class="toctree-wrapper compound">
 </div>
-</div>
-
+</section>
+</section>
+    <div></div>
     <div id='vueBottomPage'></div>
     </div>
   </div>

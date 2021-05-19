@@ -114,6 +114,14 @@ class Datastore(Thread):
                             SELECT id FROM tasks ORDER BY id LIMIT (SELECT count(*) - 100 FROM tasks)
                         );
                     END;
+                    CREATE TABLE "sphinxbuilder" (
+                        "id"	INTEGER,
+                        "owner"	TEXT,
+                        "name"	TEXT,
+                        "path"	TEXT,
+                        "hash"	TEXT,
+                        PRIMARY KEY("id")
+                    );
                 """)
                 cnx.commit()
             except Exception as e:

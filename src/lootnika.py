@@ -24,6 +24,7 @@ stillWork = False
 devMode = False
 # devMode = True
 # sys.argv.append('run')  # only for debug mode
+# sys.argv.append('make-doc')
 
 
 def svc_init():
@@ -101,6 +102,13 @@ if __name__ == "__main__":
 
                 log.info(f"Starting...")
                 import core
+
+            elif 'make-doc' in sys.argv:
+                from conf import log, logRest, console
+                log.info(f"Compile documentation")
+                sys.argv = sys.argv[:1]
+                import sphinxbuilder
+                sphinxbuilder.build()
             else:
                 raise Exception('Show help')
 
@@ -117,5 +125,6 @@ if __name__ == "__main__":
               ' doc: get documentation\n'
               ' install: install as windows service\n'
               ' remove: delete windows service\n'
-              ' update: update windows service\n')
+              ' update: update windows service\n'
+              ' make-doc: recompile documentation\n')
         # os._exit(42)

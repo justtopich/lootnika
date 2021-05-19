@@ -37,11 +37,9 @@ from taskstore import Document
 class Converter:
     def __init__(self, cfg: dict):
         """
-
         :param cfg: exporter section
         """
         self.type = "csv"
-        self.encoding = 'utf-8'
         self.adds = ''
         self.header = ''
         self.isTitled = False

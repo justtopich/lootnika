@@ -429,7 +429,12 @@ def load_exporter(name: str) -> dict:
 
 if __name__ != '__main__':
     try:
-        create_dirs([f"{homeDir}{'logs'}", f"{homeDir}{'temp'}"])
+        create_dirs([
+            f"{homeDir}{'logs'}",
+            f"{homeDir}{'temp'}",
+            f"{homeDir}{'temp'}",
+            f"{homeDir}{'sphinx-doc'}",
+        ])
     except Exception as e:
         print(e)
         time.sleep(3)

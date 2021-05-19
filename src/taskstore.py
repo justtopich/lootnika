@@ -6,8 +6,10 @@ from lootnika import (
     cityhash,
     dpath,
     traceback,
+    OrderedDict,
     time,
     uuid4,
+    bson,
     os)
 
 
@@ -150,6 +152,30 @@ class TaskStore:
             return rows
 
 
+class SortedDict(OrderedDict):
+    def __init__(self, **kwargs):
+        super(SortedDict, self).__init__()
+
+        for key, value in sorted(kwargs.items()):
+            # TODO sort list?
+            if isinstance(value, dict):
+                self[key] = SortedDict(**value)
+            else:
+                self[key] = value
+
+    def items(self):
+        for key in self.keys_sorted():
+            yield key, self.get(key)
+
+    def keys_sorted(self):
+        for key in sorted(self.keys()):
+            yield key
+
+    def values(self):
+        for key in self.keys_sorted():
+            yield self.get(key)
+
+
 class Document:
     """
     Lootnika Document. Factory can work only with this format.
@@ -181,7 +207,7 @@ class Document:
             'create_dtm': int(time.time()),
             'exporter': '',
             'format': '',
-            'fields': fields}
+            'fields': SortedDict(**fields)}
 
         self.reference = self.reference.replace(f'@loot_id@', loootId, -1)
         for i in fields:
@@ -194,10 +220,28 @@ class Document:
         """
         calculate hash only for meta fields, not header
         """
-        return str(cityhash.CityHash64(orjson.dumps(self.raw['fields'], option=orjson.OPT_SORT_KEYS)))
+        return f"{cityhash.CityHash64(bson.dumps(self.raw['fields']))}"
 
     def get_field(self, path: str):
         """
         using syntax from dpath library
+        dpath incorrect work with datetime types
+        (issue #145 https://github.com/dpath-maintainers/dpath-python/issues/145)
         """
-        return dpath.get(self.raw, f'fields/{path}')
+        # return dpath.get(self.raw, f'fields/{path}')
+
+        keys = f'fields/{path}'.split("/")
+        val = None
+
+        for key in keys:
+            if val:
+                if isinstance(val, list):
+                    val = [ v.get(key) if v else None for v in val]
+                else:
+                    val = val.get(key)
+            else:
+                val = dict.get(self.raw, key)
+
+            if not val:
+                break
+        return val

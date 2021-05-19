@@ -11,6 +11,7 @@ class Exporter:
         self._converter = None
         self.defaultCfg = {
             "format": "json",
+            "encoding": "utf-8",
             "extension": "json",
             "path": "outgoing",
             "batchSize": "100",
@@ -30,6 +31,16 @@ class Exporter:
                 self.cfg['extension'] = config.get(self.name, 'extension')
             else:
                 self.cfg['extension'] = self.defaultCfg['extension']
+
+            if config.has_option(self.name, 'encoding'):
+                self.cfg['encoding'] = config.get(self.name, 'encoding')
+            else:
+                self.cfg['encoding'] = self.defaultCfg['encoding']
+
+            self.cfg['ignoreEncodingErrors'] = None
+            if config.has_option(self.name, 'ignoreEncodingErrors'):
+                if config.getboolean(self.name, 'ignoreEncodingErrors'):
+                    self.cfg['ignoreEncodingErrors'] = "ignore"
 
             try:
                 if config.has_option(self.name, 'failPath'):
@@ -89,9 +100,13 @@ class Exporter:
         #         hx = token_hex(int(rule[9:-3]))
         #         filename = filename.replace(rule, hx)
 
-
         self._filename += 1
-        with open(f"{self.cfg['path']}{self._filename}.{self.cfg['extension']}", mode='a') as f:
+        with open(
+            f"{self.cfg['path']}{self._filename}.{self.cfg['extension']}",
+            mode='a',
+            encoding=self.cfg['encoding'],
+            errors=self.cfg['ignoreEncodingErrors']
+        ) as f:
             f.write(parcel)
 
     def delete(self, refList: list):

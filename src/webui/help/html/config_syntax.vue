@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div class="section" id="id1">
+    
+    <section id="id1">
 <h1>Синтаксис настроек<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h1>
 <p>Конфигурационный файл состоит из секций, в котором есть параметры относящейся к ней.
 Имеет следующую структуру:</p>
@@ -22,7 +23,8 @@
 Если в пути есть пробелы - укажите его в кавычках: <code class="docutils literal notranslate"><span class="pre">"home/var</span> <span class="pre">load/lootnika"</span></code></p>
 </div>
 <p>Файл должен быть в кодировке UTF-8.</p>
-
+</section>
+    <div></div>
     <div id='vueBottomPage'></div>
     </div>
   </div>

@@ -8,7 +8,10 @@ src/lootnika-.cfg
 **/__pycache__/
 src/Lootnika/
 src/send_failed/
+src/export_failed/
 src/outgoing/
 src/temp/
 src/logs/
 src/docs/
+src/sphinx-doc/temp/
+src/sphinx-doc/build/

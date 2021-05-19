@@ -6,13 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Алфавитный указатель &#8212; Lootnika Docs</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/css/style.css " type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/style.css " />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/translations.js"></script>
     <link rel="index" title="Алфавитный указатель" href="#" />
     <link rel="search" title="Поиск" href="search.html" /> 
@@ -37,15 +36,24 @@
 <h1 id="index">Алфавитный указатель</h1>
 
 <div class="genindex-jumpbox">
- <a href="#I"><strong>I</strong></a>
+ <a href="#D"><strong>D</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#П"><strong>П</strong></a>
  
 </div>
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="picker_lootnika_pyodbc_readme.html#index-0">DRIVER</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_task.html#index-2">id</a>
+      <li><a href="picker_lootnika_mysql_readme.html#index-2">id</a>, <a href="picker_lootnika_pyodbc_readme.html#index-3">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -53,7 +61,7 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_task.html#index-0">loot_id</a>, <a href="config_task.html#index-1">[1]</a>
+      <li><a href="picker_lootnika_mysql_readme.html#index-0">loot_id</a>, <a href="picker_lootnika_mysql_readme.html#index-1">[1]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-1">[2]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-2">[3]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -65,9 +73,11 @@
     переменная окружения
 
       <ul>
-        <li><a href="config_task.html#index-2">id</a>
+        <li><a href="picker_lootnika_pyodbc_readme.html#index-0">DRIVER</a>
 </li>
-        <li><a href="config_task.html#index-0">loot_id</a>, <a href="config_task.html#index-1">[1]</a>
+        <li><a href="picker_lootnika_mysql_readme.html#index-2">id</a>, <a href="picker_lootnika_pyodbc_readme.html#index-3">[1]</a>
+</li>
+        <li><a href="picker_lootnika_mysql_readme.html#index-0">loot_id</a>, <a href="picker_lootnika_mysql_readme.html#index-1">[1]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-1">[2]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-2">[3]</a>
 </li>
       </ul></li>
   </ul></td>
@@ -107,7 +117,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Alex Whiteeyes.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
     </div>
   </body>
 </html>

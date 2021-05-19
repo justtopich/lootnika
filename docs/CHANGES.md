@@ -1,6 +1,39 @@
 # Changelog
 
-Check for the last version on [https://github.com/justtopich/](https://github.com/justtopich/)
+Check for the last version on [https://github.com/justtopich/lootnika](https://github.com/justtopich/lootnika)
+
+
+
+## 1.0.0-beta.0 (2021.05.19)
+
+### Features
+
+* new settings for **lootnika_text** exporter: `encoding` and `ignoreEncodingErrors`
+* new importer: **lootnika_pyodbc**
+* new exporter: **lootnika_binary** with **bson** format
+* Added resource usage info to API cmd `getstatus`
+* Include Sphinx-doc v4
+* Added console key `make-doc` to build documentation from docs sources
+* Included Sphinx-doc theme *sphinx_lootnika_theme*
+
+### Improvements
+
+  * Lootnika `Document.fields` attribute has been changed: **dict** -> **SortedDict** (OrderDict with sorted nested OrderDict, sorting not break if add new keys)
+  * Change `get_hash()` method for Lootnika Document: now it based on `bson.dumps()` instead of `orjson.dumps()`
+  * Changed the structure of internal documentation storage: Lootnika, collectors and exporters can now contain only sources (restructured text) in their own `docs` directory. If Lootnika detects changes in them, it will offer to update documentation.
+  * Updated help documentation
+
+### Fixes
+
+* Failed exports saving in in wrong path export_failed_{datetime}_.
+
+* API cmd `schedule` can return wrong message
+
+* Lootnika Document method `get_field()` failed if fields contain datetime types (**dpath** library issue #145 https://github.com/dpath-maintainers/dpath-python/issues/145). Replaced to native method.
+
+### Notes
+
+Tasks storages now store documents fields with new hash format and not capability with older versions.
 
 
 

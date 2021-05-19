@@ -28,8 +28,8 @@ class Factory(Thread):
         self.exporter = exporter
         self.converter = exporter._converter
         self.batchSize = exporter.cfg['batchSize']
-        # TODO оставить save_fail за экспортёром
-        self.failPath = f"{homeDir}{exporter.cfg['failPath']}{dtime.date.today().strftime('%Y%m%d')}/{taskName}/"
+        # TODO либо вынести save_fail в экспорт либо сделать тут для всех
+        self.failPath = f"{homeDir}{exporter.cfg['failPath']}/{dtime.date.today().strftime('%Y%m%d')}/{taskName}/"
         self.start()
 
     def run(self):
@@ -95,10 +95,10 @@ class Factory(Thread):
         if ttl > self.batchSize:
             start = 0
             while start < ttl:
-                self.exporter.send_delete(refList[start:start + self.batchSize])
+                self.exporter.delete(refList[start:start + self.batchSize])
                 start += self.batchSize
         else:
-            self.exporter.send_delete(refList)
+            self.exporter.delete(refList)
 
     def save_fail(self, parcel: bytearray, failPath: str):
         self.syncCount[6] += 1

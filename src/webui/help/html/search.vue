@@ -6,16 +6,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Поиск &#8212; Lootnika Docs</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/css/style.css " type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/style.css " />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script src="_static/translations.js"></script>
     <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Алфавитный указатель" href="genindex.html" />
     <link rel="search" title="Поиск" href="#" />
   <script src="searchindex.js" defer></script>
@@ -39,25 +39,33 @@
           <div class="body" role="main">
             
   <h1 id="search-documentation">Поиск</h1>
+  
   <div id="fallback" class="admonition warning">
   <script>$('#fallback').hide();</script>
   <p>
     Для работы поиска включите JavaScript в браузере.
   </p>
   </div>
+  
+  
   <p>
     Searching for multiple words only shows matches that contain
     all words.
   </p>
+  
+  
   <form action="" method="get">
     <input type="text" name="q" aria-labelledby="search-documentation" value="" />
     <input type="submit" value="искать" />
     <span id="search-progress" style="padding-left: 10px"></span>
   </form>
   
+  
+  
   <div id="search-results">
   
   </div>
+  
 
             <div class="clearer"></div>
           </div>
@@ -81,7 +89,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2020, Alex Whiteeyes.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.3.1.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.0.1.
     </div>
   </body>
 </html>

@@ -15,7 +15,6 @@ class Converter:
         :param cfg: exporter section, no needed.
         """
         self.type = "json"
-        self.encoding = 'utf-8'
         self.adds = {"DOCUMENTS": []}
 
     def add(self, doc: Document):
