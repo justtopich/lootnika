@@ -152,16 +152,23 @@ class TaskStore:
             return rows
 
 
-class SortedDict(OrderedDict):
+class SortedFields(OrderedDict):
     def __init__(self, **kwargs):
-        super(SortedDict, self).__init__()
+        super(SortedFields, self).__init__()
 
         for key, value in sorted(kwargs.items()):
             # TODO sort list?
             if isinstance(value, dict):
-                self[key] = SortedDict(**value)
+                self[key] = SortedFields(**value)
             else:
                 self[key] = value
+
+    def __str__(self):
+        d = dict(self)
+        for k in d:
+            if isinstance(d[k], SortedFields):
+                d[k] = f"{d[k]}"
+        return f"{d}"
 
     def items(self):
         for key in self.keys_sorted():
@@ -199,33 +206,38 @@ class Document:
         except Exception:
             raise ValueError("Wrong value type")
 
-        self.reference = reference
-        self.raw = {
-            'reference': '',
-            'uuid': str(uuid4()),
-            'taskname': taskName,
-            'create_dtm': int(time.time()),
-            'exporter': '',
-            'format': '',
-            'fields': SortedDict(**fields)}
+        self.reference = reference.replace('@loot_id@', loootId, -1)
+        self.uuid = f"{uuid4()}"
+        self.taskName = taskName
+        self.create_dtm = int(time.time())
+        self.exporter = ""
+        self.format = ""
+        self.fields = SortedFields(**fields)
 
-        self.reference = self.reference.replace(f'@loot_id@', loootId, -1)
-        for i in fields:
-            self.reference = self.reference.replace(f'@{i}@', str(fields[i]), -1)
-            self.raw['reference'] = self.reference
+        for k, v in fields.items():
+            self.reference = self.reference.replace(f'@{k}@', f'{v}', -1)
         if '@' in self.reference:
             raise Exception(f"Missing the necessary @field@. Reference: {self.reference}")
+
+        self.raw = {
+            'reference': self.reference,
+            'uuid': self.uuid,
+            'taskName': taskName,
+            'create_dtm': self.create_dtm,
+            'exporter': self.exporter,
+            'format': self.format,
+            'fields': self.fields}
 
     def get_hash(self) -> str:
         """
         calculate hash only for meta fields, not header
         """
-        return f"{cityhash.CityHash64(bson.dumps(self.raw['fields']))}"
+        return f"{cityhash.CityHash64(bson.dumps(self.fields))}"
 
     def get_field(self, path: str):
         """
         using syntax from dpath library
-        dpath incorrect work with datetime types
+        dpath incorrect working with datetime types
         (issue #145 https://github.com/dpath-maintainers/dpath-python/issues/145)
         """
         # return dpath.get(self.raw, f'fields/{path}')
@@ -236,7 +248,7 @@ class Document:
         for key in keys:
             if val:
                 if isinstance(val, list):
-                    val = [ v.get(key) if v else None for v in val]
+                    val = [v.get(key) if v else None for v in val]
                 else:
                     val = val.get(key)
             else:

@@ -1,5 +1,5 @@
 """
-Convert internal format (lootnika document) into text.
+Convert internal format (lootnika document) into csv.
 Create parcel (final external document) for exporter.
 
 Single row will contain all fields from one document.
@@ -35,16 +35,17 @@ from taskstore import Document
 
 
 class Converter:
-    def __init__(self, cfg: dict):
+    def __init__(self, cfgSection: dict=None, cfgExporter: dict=None):
         """
-        :param cfg: exporter section
+        :param cfgSection: exporter section raw.
+        :param cfgExporter: exporter validated configuration, no needed.
         """
         self.type = "csv"
         self.adds = ''
         self.header = ''
         self.isTitled = False
         try:
-            self.delimiter = cfg["delimiter"]
+            self.delimiter = cfgSection["delimiter"]
             self.tailcut = 0 - len(self.delimiter)
         except:
             raise Exception("incorrect parameters in exporter section: 'delimiter'")

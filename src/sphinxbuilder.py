@@ -9,6 +9,7 @@ from conf import log, create_dirs
 
 
 def check_rst(ds:Datastore) -> dict:
+    #TODO need refactoring
     log.debug("Check documentation sources")
     changed = False
     try:
@@ -30,8 +31,7 @@ def check_rst(ds:Datastore) -> dict:
 
             if exporter not in oldRst:
                 log.info(f"Found new exporter dcos: {exporter}")
-                oldRst[exporter] = {}
-                changed = True
+                oldRst[exporter] = {'path': path, 'type': 'exporter', 'rst': {}}
 
             newRst[exporter] = {'path': path, 'type': 'exporter', 'rst': {}}
             for file in ls:
@@ -55,8 +55,7 @@ def check_rst(ds:Datastore) -> dict:
 
             if picker not in oldRst:
                 log.info(f"Found new picker dcos: {picker}")
-                oldRst[picker] = {}
-                changed = True
+                oldRst[picker] = {'path': path, 'type': 'exporter', 'rst': {}}
 
             newRst[picker] = {'path': path, 'type': 'picker', 'rst': {}}
             for file in ls:
@@ -158,6 +157,7 @@ def sphinxecutor(newRst: dict) -> None:
     sys.argv.append(f'{homeDir}sphinx-doc/build')
 
     from sphinx.cmd import build
+    build.main(sys.argv[1:])
 
     try:
         shutil.rmtree(f'{homeDir}webui/help/html')

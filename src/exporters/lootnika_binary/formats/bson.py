@@ -1,18 +1,17 @@
+"""
+    bson serialization for Lootnika document.
+    Create parcel (final external document) for exporter.
+"""
+
 from taskstore import Document
 from lootnika import bson
 
 
 class Converter:
-    """
-    Convert internal format (lootnika document) into bsonS.
-    Create parcel (final external document) for exporter.
-    """
-
-    def __init__(self, cfg=None):
+    def __init__(self, cfgSection: dict=None, cfgExporter: dict=None):
         """
-        Converter must have:
-            self.type - self name that can say about output format\n
-        :param cfg: exporter section, no needed.
+        :param cfgSection: exporter section raw.
+        :param cfgExporter: exporter validated configuration, no needed.
         """
         self.type = "bson"
         self.adds = {"DOCUMENTS": []}

@@ -62,7 +62,7 @@ class Exporter:
                                     locals=locals(),
                                     fromlist=['Converter'])
                 Converter = getattr(module, 'Converter')
-                self._converter = Converter(dict(config.items(self.name)))
+                self._converter = Converter(dict(config.items(self.name)), self.cfg)
 
             except ModuleNotFoundError as e:
                 e = f"Not found format {self.cfg['format']} in exporter"

@@ -4,6 +4,29 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.1.0-beta.0 (2021.05.21)
+
+### Improvements
+
+  * Develop: Exporters formats takes two args:
+      * `cfgSection`: exporter section raw
+      
+      * `cfgExporter`: exporter validated configuration
+
+* Improvements for Lootnika `Document.fields` methods
+
+
+### Fixes
+
+* Forgotten Lootnika doc sources
+* Crashed on launch if else before not checked docs sources
+* Console key `make-doc` didn't make html documentation
+* Export to **json** can be in incorrect format (without escaping)
+* Crash caused by stopping Lootnika when have paused task
+* Export errors may not appeared in task statistics
+
+
+
 ## 1.0.0-beta.0 (2021.05.19)
 
 ### Features

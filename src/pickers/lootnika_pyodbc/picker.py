@@ -37,7 +37,7 @@ class Picker:
             # pause может сменить stop
             if scheduler.status == 'cancel':
                 self.log.warning('Task is interrupted by the user')
-                scheduler.check_point(self.taskId, self.taskName, 'cancel')
+                scheduler.check_point(self.taskId, 'cancel')
                 return True
             else:
                 self.log.info('Task resumed')

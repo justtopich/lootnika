@@ -3,6 +3,7 @@ from lootnika import (
     configparser,
     dtime, time,
     re,
+    devMode,
     os, sys,
     homeDir,
     pickerType,
@@ -10,6 +11,11 @@ from lootnika import (
 
 
 __all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dirs', 'get_svc_params']
+
+cfgFileName = 'lootnika.cfg'
+if devMode:
+    cfgFileName = 'lootnika_dev.cfg'
+
 cfg = {
     'diskUsage': {},
     'rest': {},
@@ -80,15 +86,15 @@ def lowcase_sections(parser: configparser.RawConfigParser) -> configparser.RawCo
 
 def open_config() -> configparser.RawConfigParser:
     try:
-        open(f"{homeDir}lootnika.cfg", encoding='utf-8')
+        open(f"{homeDir}{cfgFileName}", encoding='utf-8')
     except IOError:
-        open(f"{homeDir}lootnika.cfg", 'tw', encoding='utf-8')
+        open(f"{homeDir}{cfgFileName}", 'tw', encoding='utf-8')
 
-    config = configparser.RawConfigParser(comment_prefixes=('//'), allow_no_value=True)
+    config = configparser.RawConfigParser(comment_prefixes=(['//', '#', ';']), allow_no_value=True)
     config = lowcase_sections(config)
 
     try:
-        config.read(f"{homeDir}lootnika.cfg")
+        config.read(f"{homeDir}{cfgFileName}")
     except Exception as e:
         print(f"Fail to read configuration file: {e}")
         time.sleep(3)
@@ -110,7 +116,7 @@ def write_section(section: str, params: dict) -> bool:
         return val.lower()
 
     def config_write():
-        with open(f"{homeDir}lootnika.cfg", "w") as configFile:
+        with open(f"{homeDir}{cfgFileName}", "w") as configFile:
             config.write(configFile)
 
     config.optionxform = str  # позволяет записать параметр сохранив регистр

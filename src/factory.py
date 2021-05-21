@@ -13,6 +13,10 @@ from taskstore import Document
 class Factory(Thread):
     def __init__(self, taskName: str, taskLog: Logger, exporter: "Picker", syncCount: list):
         """
+        Factory can have two status:
+            work
+            sending
+
         :param taskName: required for creating subdir in SendFail path
         :param syncCount: Picker syncCount. Required for count up exporting fails
         """
@@ -43,8 +47,7 @@ class Factory(Thread):
                     break
                 elif doc == '--send--':
                     if self.parcelSize == 0: continue
-                    parcel = self.converter.get()
-                    self.send(parcel)
+                    self.send()
                     self.parcelSize = 0
                 else:
                     self.parcelSize += 1
@@ -52,15 +55,16 @@ class Factory(Thread):
                     doc.raw['format'] = self.converter.type
                     self.converter.add(doc)
                     if self.parcelSize >= self.batchSize:
-                        parcel = self.converter.get()
-                        self.send(parcel)
+                        self.send()
                         self.parcelSize = 0
             except Exception as e:
+                self.syncCount[6] += 1
                 if self.log.level == 10:
                     e = traceback.format_exc()
                 self.log.error(f"Factory: {e}")
             finally:
                 self.docs.task_done()
+                self.status = 'work'
 
     def put(self, doc: Document or str):
         """
@@ -77,18 +81,25 @@ class Factory(Thread):
     def pre_process(self):
         ...
 
-    def send(self, parcel):
+    def send(self):
         self.status = 'sending'
         self.log.info(f'New parcel sending, size: {self.parcelSize}')
 
         try:
-            self.exporter.export(parcel)
+            parcel = self.converter.get()
         except Exception as e:
+            self.syncCount[6] += 1
             e = traceback.format_exc()
-            self.log.error("Failed to export: %s" % str(e).split('rror')[-1])
-            self.save_fail(bytearray(parcel, encoding=self.converter.encoding), self.failPath)
+            raise Exception(f"Convert to {self.converter.type}: {str(e).split('rror')[-1]}")
 
-        self.status = 'work'
+        try:
+            self.exporter.export(parcel)
+            return True
+        except Exception as e:
+            self.syncCount[6] += 1
+            e = traceback.format_exc()
+            self.log.error(f"Failed to export: {str(e).split('rror')[-1]}")
+            self.save_fail(bytearray(parcel, encoding=self.converter.encoding), self.failPath)
 
     def send_delete(self, refList: list):
         ttl = len(refList)

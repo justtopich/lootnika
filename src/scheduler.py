@@ -209,9 +209,6 @@ class Scheduler:
 
         # при выходе из цикла ждёт завершения работы рабочих и отменяет таймеры
         self.status = 'stop'
-        for ht in self.workers:
-            # message(ht,clrRed)
-            ht.cancel()
         self._get_workers()
         for ht in self.workers:
             # message(ht,clrSun)

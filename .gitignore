@@ -4,7 +4,7 @@ bin/
 # src/*.cfg #
 src/*.txt
 src/*.db
-src/lootnika-.cfg
+src/lootnika_dev.cfg
 **/__pycache__/
 src/Lootnika/
 src/send_failed/
@@ -12,6 +12,6 @@ src/export_failed/
 src/outgoing/
 src/temp/
 src/logs/
-src/docs/
 src/sphinx-doc/temp/
 src/sphinx-doc/build/
+tests/tess.py

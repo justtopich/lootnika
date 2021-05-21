@@ -20,9 +20,9 @@ Key futures:
 
 Only what you need is create the picker for your data source and documents exporter. Or use included solutions.
 
-**Pickers** are connecting to source and collecting data. You do not need monitoring data changes, make schedule and e.t.c. Take a data and push them into Lootnika core in json format.
+**Pickers** are connecting to source and collecting data. You do not need monitoring data changes, make schedule and e.t.c. Take a data and push them into Lootnika core in dictionary format.
 
-**Exporter** -  you can save data in another storage. Just write what need to do with json document from input.
+**Exporter** -  you can save data in another storage. Just write what need to do with dictionary document from Lootnika core.
 
 <u>This tool is also in developing stage!</u> For production usage see something like NiFi or other.
 
@@ -39,11 +39,4 @@ python loothika.py run
 
 Lootnika will create configuration file `loothika.cfg` with examples if needed. 
 
-After start check documentation at  `http://localhost:port/help` where *port* is **[server]port** in `loothika.cfg`.
-
-
-
-------
-
-alex1.beloglazov@yandex.ru
-
+After start check documentation at  `http://localhost:port/help` where *port* is **[server]port** in `loothika.cfg`
