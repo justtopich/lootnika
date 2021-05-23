@@ -12,13 +12,12 @@
 <li><p><a class="reference internal" href="#dbscheme">DBscheme</a></p></li>
 <li><p><a class="reference internal" href="#dbusr">DBusr</a></p></li>
 <li><p><a class="reference internal" href="#dbpsw">DBpsw</a></p></li>
-<li><p><a class="reference internal" href="#id2">DBusr</a></p></li>
 <li><p><a class="reference internal" href="#skipemptyrows">SkipEmptyRows</a></p></li>
 <li><p><a class="reference internal" href="#docref">DocRef</a></p></li>
 <li><p><a class="reference internal" href="#selectid">SelectID</a></p></li>
-<li><p><a class="reference internal" href="#id3">SelectFields</a></p></li>
+<li><p><a class="reference internal" href="#id2">SelectFields</a></p></li>
 <li><p><a class="reference internal" href="#branchname">BranchName</a></p></li>
-<li><p><a class="reference internal" href="#id6">SelectBranch</a></p></li>
+<li><p><a class="reference internal" href="#id5">SelectBranch</a></p></li>
 </ul>
 </div>
 <section id="dbhost">
@@ -57,13 +56,6 @@
 </pre></div>
 </div>
 </section>
-<section id="id2">
-<h2>DBusr<a class="headerlink" href="#id2" title="Ссылка на этот заголовок">¶</a></h2>
-<p>Учётная запись которая будет использоваться для подключения к базе данных источника.</p>
-<div class="highlight-cfg notranslate"><div class="highlight"><pre><span></span><span class="na">dbPort</span><span class="o">=</span><span class="s">3306</span>
-</pre></div>
-</div>
-</section>
 <section id="skipemptyrows">
 <h2>SkipEmptyRows<a class="headerlink" href="#skipemptyrows" title="Ссылка на этот заголовок">¶</a></h2>
 <p>Булево значение отвечающее за пропуск пустых строк.</p>
@@ -94,8 +86,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id3">
-<h2>SelectFields<a class="headerlink" href="#id3" title="Ссылка на этот заголовок">¶</a></h2>
+<section id="id2">
+<h2>SelectFields<a class="headerlink" href="#id2" title="Ссылка на этот заголовок">¶</a></h2>
 <p>SQL запрос для получения полей документа.</p>
 <p>Возвращаемые строки добавляются к метаданным документа в виде полей. Названия этих полей будут соответствовать названиям столбцов.</p>
 <p>Для каждого документа можно выполнять любые SQL запросы подставляя в них его поля из предыдущих запросов. Для этого оберните их в <span class="guilabel">@</span>. Количество запросов не ограничено и начинаются с <code class="xref std std-option docutils literal notranslate"><span class="pre">SelectFields0</span></code>. В одном таком параметре может быть только один запрос.</p>
@@ -127,8 +119,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id6">
-<h2>SelectBranch<a class="headerlink" href="#id6" title="Ссылка на этот заголовок">¶</a></h2>
+<section id="id5">
+<h2>SelectBranch<a class="headerlink" href="#id5" title="Ссылка на этот заголовок">¶</a></h2>
 <p>SQL запрос из вспомогательной ветви.</p>
 <p>Позволяет собрать несколько значений одного поля или отдельные сущности со своим набором полей.</p>
 <p>Для каждой ветви обязательно нужно указать её имя <a class="reference external" href="#BranchName">BranchName</a>.

@@ -2,7 +2,7 @@
   <div>
     
     <section id="lootnika-text">
-<h1>lootnika_text<a class="headerlink" href="#lootnika-text" title="Ссылка на этот заголовок">¶</a></h1>
+<h1>lootnika text<a class="headerlink" href="#lootnika-text" title="Ссылка на этот заголовок">¶</a></h1>
 <p>Экспорт документов в текстовые форматы.</p>
 <div class="contents local topic" id="id1">
 <ul class="simple">
@@ -11,6 +11,9 @@
 <li><p><a class="reference internal" href="#ignoreencodingerrors">IgnoreEncodingErrors</a></p></li>
 <li><p><a class="reference internal" href="#extension">Extension</a></p></li>
 <li><p><a class="reference internal" href="#delimiter">Delimiter</a></p></li>
+<li><p><a class="reference internal" href="#lineterminator">LineTerminator</a></p></li>
+<li><p><a class="reference internal" href="#quoting">Quoting</a></p></li>
+<li><p><a class="reference internal" href="#quotechar">Quotechar</a></p></li>
 <li><p><a class="reference internal" href="#path">Path</a></p></li>
 <li><p><a class="reference internal" href="#failpath">FailPath</a></p></li>
 </ul>
@@ -58,8 +61,42 @@
 <section id="delimiter">
 <h2>Delimiter<a class="headerlink" href="#delimiter" title="Ссылка на этот заголовок">¶</a></h2>
 <p>Разделитель полей.</p>
-<p>Доступен при использовании формата <code class="docutils literal notranslate"><span class="pre">csv</span></code></p>
+<p>По умолчанию используется <span class="guilabel">,</span></p>
+<p>Доступен при использовании формата <strong>csv</strong></p>
 <div class="highlight-cfg notranslate"><div class="highlight"><pre><span></span><span class="na">Delimiter</span> <span class="o">=</span> <span class="s">|</span>
+</pre></div>
+</div>
+</section>
+<section id="lineterminator">
+<h2>LineTerminator<a class="headerlink" href="#lineterminator" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Разделитель строки.</p>
+<p>По умолчанию используется <span class="guilabel">\n</span></p>
+<p>Доступен при использовании формата <strong>csv</strong></p>
+<div class="highlight-cfg notranslate"><div class="highlight"><pre><span></span><span class="na">LineTerminator</span> <span class="o">=</span> <span class="s">\r\n</span>
+</pre></div>
+</div>
+</section>
+<section id="quoting">
+<h2>Quoting<a class="headerlink" href="#quoting" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Режим экранирования.</p>
+<p>Доступны:</p>
+<ul class="simple">
+<li><p>NONE</p></li>
+<li><p>MINIMAL - только спец символы</p></li>
+<li><p>ALL - всю строку</p></li>
+</ul>
+<p>По умолчанию используется <span class="guilabel">MINIMAL</span></p>
+<p>Доступен при использовании формата <strong>csv</strong></p>
+<div class="highlight-cfg notranslate"><div class="highlight"><pre><span></span><span class="na">Quoting</span> <span class="o">=</span> <span class="s">None</span>
+</pre></div>
+</div>
+</section>
+<section id="quotechar">
+<h2>Quotechar<a class="headerlink" href="#quotechar" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Экранирующий символ.</p>
+<p>По умолчанию используется <code class="xref std std-option docutils literal notranslate"><span class="pre">"</span></code></p>
+<p>Доступен при использовании формата <strong>csv</strong></p>
+<div class="highlight-cfg notranslate"><div class="highlight"><pre><span></span><span class="na">quotechar</span> <span class="o">=</span> <span class="s">'</span>
 </pre></div>
 </div>
 </section>
