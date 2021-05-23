@@ -34,7 +34,7 @@ import psutil
 import sphinx
 
 
-__version__ = "1.1.0-beta.0"
+__version__ = "1.1.1-beta.0"
 pickerType = "lootnika_pyodbc"
 upTime = dtime.datetime.now()
 # Windows запускает модули exe из папки пользователя

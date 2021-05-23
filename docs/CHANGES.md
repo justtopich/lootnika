@@ -4,6 +4,22 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.1.1-beta.0 (2021.05.23)
+
+### Improvements
+
+  * Update forma **CSV** for **lootnika_text** exporter. Add parameters:
+      * `LineTerminator`
+      * `Quoting`
+      * `Quotechar`
+
+
+### Fixes
+
+* Exporter **lootnika_pyodbc** can failed if parse documents with few rows
+
+
+
 ## 1.1.0-beta.0 (2021.05.21)
 
 ### Improvements

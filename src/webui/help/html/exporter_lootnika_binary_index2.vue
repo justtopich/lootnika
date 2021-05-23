@@ -2,7 +2,7 @@
   <div>
     
     <section id="lootnika-binary">
-<h1>lootnika_binary<a class="headerlink" href="#lootnika-binary" title="Ссылка на этот заголовок">¶</a></h1>
+<h1>lootnika binary<a class="headerlink" href="#lootnika-binary" title="Ссылка на этот заголовок">¶</a></h1>
 <p>Экспорт документов в простые файлы.</p>
 <div class="contents local topic" id="id1">
 <ul class="simple">

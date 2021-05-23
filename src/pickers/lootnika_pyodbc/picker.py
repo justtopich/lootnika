@@ -146,10 +146,6 @@ class Picker:
                     try:
                         curDes = cur.description
                         for col in curDes:
-                            if isinstance(col, bytes):
-                                # 6 лет прошло, а они это так и не фиксят ><
-                                # MySQLCursor Bug #64392
-                                col = col.decode('utf-8')
                             body[col[0]] = None
 
                     except Exception as e:
@@ -167,12 +163,13 @@ class Picker:
             ls = []
             groupBody = {}
             try:
+                isFirst = True
                 for row in rows:
                     body = {}
                     for col, val in row.items():
                         if val is not None:
                             # TODO allow get null value?
-                            if group and len(rows) > 1:
+                            if group and not isFirst:
                                 try:
                                     groupBody[col].append(val)
                                 except KeyError:
@@ -182,6 +179,7 @@ class Picker:
                             else:
                                 body[col] = val
 
+                    isFirst = False
                     if not group:
                         ls.append(body)
                 if group:

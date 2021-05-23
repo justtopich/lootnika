@@ -32,6 +32,7 @@ Converter must have:
 """
 
 from taskstore import Document
+import csv, io
 
 
 class Converter:
@@ -41,28 +42,47 @@ class Converter:
         :param cfgExporter: exporter validated configuration, no needed.
         """
         self.type = "csv"
-        self.adds = ''
-        self.header = ''
+        self.rows = []
+        self.header = []
         self.isTitled = False
-        try:
+        self.delimiter = None
+        self.quotechar = '"'
+        self.lineterminator = '\n'
+
+        if "delimiter" in cfgSection:
             self.delimiter = cfgSection["delimiter"]
-            self.tailcut = 0 - len(self.delimiter)
-        except:
-            raise Exception("incorrect parameters in exporter section: 'delimiter'")
+        if "lineterminator" in cfgSection:
+            self.lineterminator = cfgSection["lineterminator"].replace('\\n', "\n", -1).replace('\\r', "\r", -1)
+        if "quotechar" in cfgSection:
+            self.quotechar = cfgSection["quotechar"]
+        if "quoting" in cfgSection:
+            d = {
+                "NONE": csv.QUOTE_NONE,
+                "MINIMAL": csv.QUOTE_MINIMAL,
+                "ALL": csv.QUOTE_ALL}
+
+            quoting = cfgSection["quoting"].upper()
+            if quoting in d:
+                self.quoting = d[quoting]
+            else:
+                raise Exception(
+                    f"Wrong parameter quoting: {cfgSection['quoting']}."
+                    f" Available: {''.join(f'{i}, ' for i in d.keys())[:-2]}")
 
     def add(self, doc: Document):
+        row = []
         for k, v in doc.raw.items():
             if k == 'fields':
                 for kk, vv in doc.raw[k].items():
                     if not self.isTitled:
-                        self.header += f"{k}.{kk}{self.delimiter}"
-                    self.adds += f"{vv}{self.delimiter}"
+                        self.header.append(f"{k}.{kk}")
+                    row.append(f"{vv}")
             else:
                 if not self.isTitled:
-                    self.header += f"{k}{self.delimiter}"
-                self.adds += f"{doc.raw[k]}{self.delimiter}"
+                    self.header.append(k)
+                row.append(f"{doc.raw[k]}")
 
-        self.adds = f"{self.adds[:self.tailcut]}\n"
+        self.rows.append(row)
         self.isTitled = True
 
     def get(self) -> str:
@@ -71,8 +91,19 @@ class Converter:
         will added to new parcel.
         :return: finished parcel. ready to export
         """
-        parcel = f"{self.header[:self.tailcut]}\n{self.adds}\n\n"
-        self.adds = ''
-        self.header = ''
+        with io.StringIO() as f:
+            csvMan = csv.writer(
+                f,
+                delimiter=self.delimiter,
+                quoting=csv.QUOTE_MINIMAL,
+                quotechar=self.quotechar,
+                lineterminator=self.lineterminator,
+            )
+            csvMan.writerow(self.header)
+            csvMan.writerows(self.rows)
+            parcel = f.getvalue()
+
+        self.rows.clear()
+        self.header.clear()
         self.isTitled = False
         return parcel
