@@ -13,3 +13,6 @@ clickhouse_cityhash>=1.0.2.3
 bson>=0.5.10
 psutil>=5.8.0
 sphinx>=3.3.1
+aiohttp>=3.7
+pyodbc>=4.0.0
+./packages/sphinx_lootnika_theme-0.2.2b0-py2.py3-none-any.whl

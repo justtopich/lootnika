@@ -30,7 +30,7 @@ def check_rst(ds:Datastore) -> dict:
                 continue
 
             if exporter not in oldRst:
-                log.info(f"Found new exporter dcos: {exporter}")
+                log.info(f"Found new exporter docs: {exporter}")
                 oldRst[exporter] = {'path': path, 'type': 'exporter', 'rst': {}}
 
             newRst[exporter] = {'path': path, 'type': 'exporter', 'rst': {}}
@@ -54,7 +54,7 @@ def check_rst(ds:Datastore) -> dict:
                 continue
 
             if picker not in oldRst:
-                log.info(f"Found new picker dcos: {picker}")
+                log.info(f"Found new picker docs: {picker}")
                 oldRst[picker] = {'path': path, 'type': 'exporter', 'rst': {}}
 
             newRst[picker] = {'path': path, 'type': 'picker', 'rst': {}}
@@ -153,8 +153,8 @@ def sphinxecutor(newRst: dict) -> None:
 
     sys.argv.append('-M')
     sys.argv.append('html')
-    sys.argv.append(f'{homeDir}sphinx-doc/temp')
-    sys.argv.append(f'{homeDir}sphinx-doc/build')
+    sys.argv.append(f'{homeDir}sphinx-doc/temp/')
+    sys.argv.append(f'{homeDir}sphinx-doc/build/')
 
     from sphinx.cmd import build
     build.main(sys.argv[1:])

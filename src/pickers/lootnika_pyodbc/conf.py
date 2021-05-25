@@ -3,11 +3,12 @@ from lootnika import configparser
 
 defaultCfg = {
             "docRef": "myDB-@id@",
-            "DBhost": "localhost",
-            "DBport": "3306",
-            "DBscheme": "scheme",
-            "DBusr": "user",
-            "DBpsw": "password",
+            "cnxString": 'DRIVER={MySQL ODBC 8.0 Unicode Driver};'
+                         'UID=user;'
+                         'Password=pass;'
+                         'Server=localhost;'
+                         'Port=3306;'
+                         'Database=forum;',
             "skipEmptyRows": "True",
             "selectID": "SELECT some_uid AS loot_id FROM table1",
             "SelectFields0": "SELECT * FROM table2 where obj_id=@loot_id@"}

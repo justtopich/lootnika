@@ -179,13 +179,13 @@ def load_picker():
         return getattr(module, 'Picker')
 
     except ModuleNotFoundError as e:
-        log.fatal(f"No picker {pickerType}. Check if a module exists in directory pickers")
+        log.fatal(f"Can't initialize picker {pickerType}: {e}")
         raise SystemExit(1)
     except AttributeError as e:
-        log.fatal(f'Wrong picker: {e}')
+        log.fatal(f'Wrong picker initializing: {e}')
         raise SystemExit(1)
     except Exception as e:
-        log.fatal(f'Fail load picker: {e}')
+        log.fatal(f'Fail initialize picker: {e}')
         raise SystemExit(1)
 
 

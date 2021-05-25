@@ -1,4 +1,5 @@
 from lootnika import (
+    sout,
     logging, RotatingFileHandler,
     configparser,
     dtime, time,
@@ -112,33 +113,27 @@ def create_dirs(paths: iter) -> None:
 
 
 def write_section(section: str, params: dict) -> bool:
-    def lowcaseMe(val: str) -> str:
-        return val.lower()
+    try:
+        with open(f'{homeDir}{cfgFileName}', "a") as configFile:
+            configFile.write(f"\n[{section}]\n")
+            for k, v in params.items():
+                configFile.write(f"{k} = {v}\n")
 
-    def config_write():
-        with open(f"{homeDir}{cfgFileName}", "w") as configFile:
-            config.write(configFile)
-
-    config.optionxform = str  # позволяет записать параметр сохранив регистр
-    config.add_section(section)
-
-    for val in params:
-        config.set(section, val, params[val])
-
-    config.optionxform = lowcaseMe  # вернёт предопределённый метод назад
-    config_write()
-    return True
+        return True
+    except Exception as e:
+        print(f"Can't write to {cfgFileName}: {e}")
+        return False
 
 
 def check_base_sections(config: configparser.RawConfigParser):
     edited = False
     try:
-        for k in ['server', 'service', 'diskusage', 'schedule', 'logging']:
+        for k in ['server', 'service', 'logging', 'diskusage', 'schedule']:
             if not config.has_section(k):
                 print(f"ERROR: no section {k}")
                 edited = write_section(k, default[k])
-                # if k == 'schedule':
-                #     write_section('example', default['example'])
+                if k == 'schedule':
+                    write_section('export', default['export'])
 
         if edited:
             print("WARNING: created new sections in config file. Restart me to apply them")
@@ -410,10 +405,10 @@ def load_exporter(name: str) -> dict:
 
         # нужен если указан в задаче, а его нет
         try:
-            if not config.has_section(name):
+            if len(config.items(name)) == 1:
                 log.warning(f'Create new section {name}')
 
-                if write_section(name, exporter.defaultCfg):
+                if write_section(name, {**{'type': expType}, **exporter.defaultCfg}):
                     print("WARNING: created new sections in config file. Restart me to apply them")
                     raise SystemExit(1)
         except Exception as e:

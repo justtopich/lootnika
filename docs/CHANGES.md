@@ -4,6 +4,22 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.1.2-beta.0 (2021.05.25)
+
+### Improvements
+
+  * extended information for exceptions with pickers initializing
+
+### Fixes
+
+* Config parser erase comments in configuration file when write new section
+* Sphinx-doc don't see included themes
+* Don't creating default settings (examples) for exporters sections
+* no `cnxString` parameter in default settings for **lootnika_pyodbc** picker
+* Admin panel not using custom API port and working if Lootnika started on 8080
+
+
+
 ## 1.1.1-beta.0 (2021.05.23)
 
 ### Improvements
