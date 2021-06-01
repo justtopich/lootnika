@@ -13,6 +13,7 @@
 <ul>
 <li class="toctree-l1"><router-link class="reference internal" href="/index/api/api_syntax" to="/index/api/api_syntax">Синтаксис команд</router-link></li>
 <li class="toctree-l1"><router-link class="reference internal" href="/index/api/api_common" to="/index/api/api_common">Общие команды</router-link><ul>
+<li class="toctree-l2"><router-link class="reference internal" href="/index/api/api_common" to="/index/api/api_common#getinfo" v-scroll-to="'/index/api/api_common#getinfo'">GetInfo</router-link></li>
 <li class="toctree-l2"><router-link class="reference internal" href="/index/api/api_common" to="/index/api/api_common#getstatus" v-scroll-to="'/index/api/api_common#getstatus'">GetStatus</router-link></li>
 </ul>
 </li>

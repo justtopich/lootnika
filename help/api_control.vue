@@ -22,7 +22,7 @@
 <h2>Stop<a class="headerlink" href="#stop" title="Ссылка на этот заголовок">¶</a></h2>
 <p>Остановка Лутники.</p>
 <p>Настоятельно рекомендуется останавливать Лутнику либо через службу, либо данной командой, либо через консоль комбинацией <kbd class="kbd docutils literal notranslate">ctrl</kbd> + <kbd class="kbd docutils literal notranslate">c</kbd>.
-При штатной остановке Лутники прекращает выполнять задания, экспортирует документы которые успел получить и сохраняет все данные в журнал заданий.</p>
+При штатной остановке Лутники прекращает выполнять задания, экспортирует документы которые успела получить и сохраняет все данные в журнал заданий.</p>
 <div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">stop</span>
 </pre></div>
 </div>
@@ -90,7 +90,7 @@
 <td><p>Строка</p></td>
 <td><p>Дата и время следующего старта заданий</p></td>
 </tr>
-<tr class="row-even"><td><p>remained_cycles</p></td>
+<tr class="row-even"><td><p>cycles_left</p></td>
 <td><p>Число</p></td>
 <td><p>Количество оставшихся повторов заданий. Значение <em>-1</em> означает бесконечное повторение.</p></td>
 </tr>
