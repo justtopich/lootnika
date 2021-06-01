@@ -18,7 +18,7 @@ from restserv import get_client_role, taskListCopy
 
 routes = aioweb.RouteTableDef()
 
-@routes.get('/a=getstatus', role=['query', 'admin'])
+@routes.get('/a=getinfo', role=['query', 'admin'])
 async def handler(request):
     data = {'status': 'error', 'message': ''}
     status = 500
@@ -30,11 +30,25 @@ async def handler(request):
         data['directory'] = homeDir
         data['client_host'] = request.remote
         data['client_role'] = get_client_role(request.remote)
+        data['pid'] = selfControl.pid
+        data['pid_owner'] = selfControl.pidUser
+        data['status'] = 'ok'
+        status = 200
+    except Exception as e:
+        e = str(e)
+        logRest.error(e)
+        data['message'] = e
+    finally:
+        return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
+
+@routes.get('/a=getstatus', role=['query', 'admin'])
+async def handler(request):
+    data = {'status': 'error', 'message': ''}
+    status = 500
+    try:
         data['status'] = 'ok'
         data['uptime'] = str(dtime.datetime.now() - upTime).split('.')[0]
-        data['pid'] = selfControl.pid
-        data['pid_user'] = selfControl.pidUser
-        data['resource_usage'] = selfControl.resourcesUsage
+        data = {**data, **selfControl.resourcesUsage}
         status = 200
     except Exception as e:
         e = str(e)
@@ -129,9 +143,9 @@ async def handler(request):
                 # Infinity если задан бесконечный повтор. Некоторые такое могут не понять и
                 # потому оно заменяется на -1. На самом деле -1 означает выключенное
                 # расписание, потому тут так...
-                if scheduler.taskCycles == -1: data['remained_cycles'] = 0
-                elif scheduler.taskCycles == float('Inf'): data['remained_cycles'] = -1
-                else: data['remained_cycles'] = scheduler.taskCycles
+                if scheduler.taskCycles == -1: data['cycles_left'] = 0
+                elif scheduler.taskCycles == float('Inf'): data['cycles_left'] = -1
+                else: data['cycles_left'] = scheduler.taskCycles
 
                 data['tasks'] = []
                 for row in dbData:
@@ -148,6 +162,7 @@ async def handler(request):
         elif cmd == 'tasksinfo':
             try:
                 data['tasks'] = taskListCopy
+                data['status'] = 'ok'
             except Exception as e:
                 raise Exception(f'Command {cmd} is failed: {e}')
         else:

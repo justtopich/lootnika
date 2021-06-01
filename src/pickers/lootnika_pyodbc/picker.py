@@ -59,23 +59,13 @@ class Picker:
 
     def connect(self) -> pyodbc.Connection:
         self.log.info("Connecting to source...")
-        # print("\n   -----------         ",
-        #       f"\nDataBase: {self.task['DBhost']}: {self.task['DBport']}",
-        #       f"\nDBscheme: {self.task['DBscheme']}",
-        #       f"\nUser: {self.task['DBusr']}",
-        #       "\n   -----------         \n")
         try:
             cnx = pyodbc.connect(self.task['cnxString'])
             # cnx = pyodbc.connect("")
             return cnx
         except pyodbc.Error as e:
-            # self.syncCount[5] += 1
-            # if e.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            #     self.log.error("Access denied by source")
-            # elif e.errno == errorcode.ER_BAD_DB_ERROR:
-            #     self.log.error("Wrong database. Does it exist?")
-            # else:
-                self.log.error(f'Connection error: {e}')
+            self.syncCount[5] += 1
+            self.log.error(f'Connection error: {e}')
 
     def get_objects_id(self, cnx: pyodbc.Connection, query: str) -> list:
         """

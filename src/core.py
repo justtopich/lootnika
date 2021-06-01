@@ -92,7 +92,6 @@ class SelfControl(Thread):
         self.pid = os.getpid()
         self.pidUser =  psutil.Process(self.pid).username()
         self.resourcesUsage = {
-            "ram": {},
             "cpu": 0.0
         }
         self.isVerified = False   # все модули работают
@@ -118,8 +117,13 @@ class SelfControl(Thread):
             self.allThreads.append(i.name)
 
     def resources_usage(self):
-        self.resourcesUsage['ram'] = dict(psutil.virtual_memory()._asdict())
-        self.resourcesUsage['ram']['lootnika_percent'] = round(psutil.Process(self.pid).memory_percent(), 2)
+        for k,v in psutil.virtual_memory()._asdict().items():
+            self.resourcesUsage[f'ram_{k}'] = v
+
+        for k,v in psutil.swap_memory()._asdict().items():
+            self.resourcesUsage[f'swap_{k}'] = v
+
+        self.resourcesUsage['ram_lootnika_percent'] = round(psutil.Process(self.pid).memory_percent(), 2)
         self.resourcesUsage['cpu'] = psutil.cpu_percent(interval=None)
 
     def run(self):

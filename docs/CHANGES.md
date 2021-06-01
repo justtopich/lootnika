@@ -4,6 +4,21 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.1.3-beta.0 (2021.06.01)
+
+### Improvements
+
+  * new API cmd `getInfo`
+  * extended information for  API cmd `getstatus`
+  * rewriting control panel with functional components. 
+
+### Fixes
+
+* Exporter lootnika_pyodbc didn't mark connection error as task error
+* API cmd `a=schedule?cmd=TasksInfo` return wrong status
+
+
+
 ## 1.1.2-beta.0 (2021.05.25)
 
 ### Improvements
@@ -14,7 +29,7 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 * Config parser erase comments in configuration file when write new section
 * Sphinx-doc don't see included themes
-* Don't creating default settings (examples) for exporters sections
+* Didn't creating default settings (examples) for exporters sections
 * no `cnxString` parameter in default settings for **lootnika_pyodbc** picker
 * Admin panel not using custom API port and working if Lootnika started on 8080
 
