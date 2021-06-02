@@ -119,7 +119,13 @@ async def handler(request):
                         'count_seen','count_new','count_differ','count_delete',
                         'count_task_error','count_export_error','last_doc_id']
 
-                q = 'SELECT * FROM tasks ORDER BY id DESC'
+                q = 'SELECT * FROM tasks'
+
+                if 'taskname' in args:
+                    names = args['taskname'].replace(",", "','", -1)
+                    q = f"{q} WHERE name in ('{names}')"
+
+                q = f"{q} ORDER BY id DESC"
 
                 if 'limit' in args:
                     try:

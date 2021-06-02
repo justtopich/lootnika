@@ -125,7 +125,7 @@ def write_section(section: str, params: dict) -> bool:
         return False
 
 
-def check_base_sections(config: configparser.RawConfigParser):
+def check_base_sections(config: configparser.RawConfigParser) -> None:
     edited = False
     try:
         for k in ['server', 'service', 'logging', 'diskusage', 'schedule']:
@@ -203,11 +203,14 @@ def create_logger(config: configparser.RawConfigParser) -> (logging.Logger, logg
 
 def create_task_logger(taskName: str, console: logging.Logger) -> logging.Logger:
     logger = logging.getLogger(taskName)
-    handler = RotatingFileHandler(f"{homeDir}logs/{taskName}.log", )
-    handler.setFormatter(console.formatter)
-    logger.addHandler(handler)
-    logger.addHandler(console)
-    logger.setLevel(console.level)
+    if taskName not in [i.name for i in logger.handlers]:
+        handler = RotatingFileHandler(f"{homeDir}logs/{taskName}.log", )
+        handler.name = taskName
+        handler.setFormatter(console.formatter)
+        logger.addHandler(handler)
+        logger.addHandler(console)
+        logger.setLevel(console.level)
+
     return logger
 
 

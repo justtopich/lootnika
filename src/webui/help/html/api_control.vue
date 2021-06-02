@@ -48,11 +48,12 @@
 <h3>Schedule: QueueInfo<a class="headerlink" href="#schedule-queueinfo" title="Ссылка на этот заголовок">¶</a></h3>
 <p>Просмотр журнал заданий.</p>
 <p>Получение списка завершённых и текущих заданий, их статуса и прогресса выполнения. По умолчанию вернёт 20 последних записей.</p>
-<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">QueueInfo</span><span class="o">&amp;</span><span class="ow">limit=</span><span class="mi">100</span>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">schedule</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">QueueInfo</span><span class="o">&amp;</span><span class="ow">taskName=</span><span class="n">news</span><span class="p">,</span><span class="n">posts</span><span class="o">&amp;</span><span class="ow">limit=</span><span class="mi">100</span>
 </pre></div>
 </div>
 <dl class="simple">
 <dt>Дополнительные параметры:</dt><dd><ul class="simple">
+<li><p><strong>taskName</strong> - список заданий по которым делать выборку. Задания перечисляются через запятую</p></li>
 <li><p><strong>start</strong> - указывает пропустить указанное число заданий, прежде чем выдать результат</p></li>
 <li><p><strong>limit</strong> - ограничение размера выдачи</p></li>
 </ul>
@@ -193,7 +194,8 @@
 <p>Этот параметр обязателен при возобновлении задания.</p>
 <div class="admonition attention">
 <p class="admonition-title">Внимание</p>
-<p>Счётчик выполнений <router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule"><span class="doc">Schedule: TaskCycles</span></router-link> не учитывает задания запущенные таким образом.</p>
+<p>Таким способом можно запустить только те задания, которые заданы в расписании.
+Счётчик выполнений <router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule"><span class="doc">Schedule: TaskCycles</span></router-link> не учитывает задания запущенные таким образом.</p>
 </div>
 </section>
 <section id="schedule-pause">

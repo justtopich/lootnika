@@ -4,12 +4,30 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.2.0-beta.0 (2021.06.02)
+
+### Features
+
+  * New schedule control card in control panel
+  * New parameter **taskname**  for API cmd `a=schedule?cmd=QueueInfo`
+  * add binary data to DB test dump (files for users posts)
+
+### Improvements
+
+  * updated control panel to v.0.5.1
+
+### Fixes
+
+  * Records in tasks log files were duplicating
+
+
+
 ## 1.1.3-beta.0 (2021.06.01)
 
 ### Improvements
 
   * new API cmd `getInfo`
-  * extended information for  API cmd `getstatus`
+  * extended information for API cmd `getstatus`
   * rewriting control panel with functional components. 
 
 ### Fixes
