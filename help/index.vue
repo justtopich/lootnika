@@ -29,7 +29,6 @@
 <li><p><router-link class="reference internal" href="/index/config" to="/index/config"><span class="doc">Настройки</span></router-link>  - описание параметров</p></li>
 <li><p><router-link class="reference internal" href="/index/api" to="/index/api"><span class="doc">Команды</span></router-link> - описание REST API</p></li>
 </ul>
-<p>По замечаниям, найденным ошибкам или предложениям пишите на почту <a class="reference external" href="mailto:alex1.beloglazov%40yandex.ru">alex1<span>.</span>beloglazov<span>@</span>yandex<span>.</span>ru</a></p>
 <div class="toctree-wrapper compound">
 </div>
 </section>

@@ -16,6 +16,7 @@
 <li><p><a class="reference internal" href="#schedule-cancel">Schedule: Cancel</a></p></li>
 </ul>
 </li>
+<li><p><a class="reference internal" href="#log">Log</a></p></li>
 </ul>
 </div>
 <section id="stop">
@@ -215,6 +216,102 @@
 </pre></div>
 </div>
 </section>
+</section>
+<section id="log">
+<h2>Log<a class="headerlink" href="#log" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Чтение журналов событий.</p>
+<p>Лутника позволяет как просматривать содержимое логов, так и скачивать их. Но для таких операций всегда нужно указывать
+конкретный файл.</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">log</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">list</span>
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">"files"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"lootnika.log"</span><span class="p">,</span> <span class="s2">"rest.log"</span><span class="p">,</span> <span class="s2">"rest.log.1"</span><span class="p">,</span> <span class="s2">"rest.log.2"</span><span class="p">]}</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Предупреждение</p>
+<p>Лутника работает только с логами находящиеся в папке <code class="file docutils literal notranslate"><span class="pre">logs</span></code>.</p>
+</div>
+<p>Параметры:</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 10%"/>
+<col style="width: 70%"/>
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Параметр</p></th>
+<th class="head"><p>Требует</p></th>
+<th class="head"><p>Формат</p></th>
+<th class="head"><p>Значение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>cmd</p></td>
+<td></td>
+<td><p>строка</p></td>
+<td><dl class="simple">
+<dt>принимает значения:</dt><dd><ul class="simple">
+<li><p><strong>list</strong> - получить список файлов</p></li>
+<li><p><strong>read</strong> - прочитать указанный файл</p></li>
+<li><p><strong>get</strong> - скачать указанный файл</p></li>
+</ul>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="row-odd"><td><p>file</p></td>
+<td><p>cmd=read cmd=get</p></td>
+<td><p>строка</p></td>
+<td><p>лог файл котрый нужно прочесть.</p></td>
+</tr>
+<tr class="row-even"><td><p>limit</p></td>
+<td><p>cmd=read</p></td>
+<td><p>число</p></td>
+<td><p>лимит возращаемых строк. По умолчанию <code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>backward</p></td>
+<td><p>cmd=read</p></td>
+<td><p>булево</p></td>
+<td><p>Чтение c конца файла. По умолчанию <code class="docutils literal notranslate"><span class="pre">True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>offset</p></td>
+<td><p>cmd=read</p></td>
+<td><p>число</p></td>
+<td><p>Положение курсора в файле.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Вместе со строками, Лутника возвращает текущий <code class="xref std std-option docutils literal notranslate"><span class="pre">offset</span></code> который можно использовать для получения следующих
+строк от последней прочитанной позиции, и <code class="xref std std-option docutils literal notranslate"><span class="pre">end</span></code> по которому можно отслеживать изменился ли файл.</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">log</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">read</span><span class="o">&amp;</span><span class="ow">file=</span><span class="n">lootnika</span><span class="o">.</span><span class="n">log</span><span class="o">&amp;</span><span class="ow">limit=</span><span class="mi">3</span>
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="nt">"offset"</span><span class="p">:</span> <span class="mi">54392</span><span class="p">,</span>
+<span class="nt">"end"</span><span class="p">:</span> <span class="mi">54553</span><span class="p">,</span>
+<span class="nt">"records"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">"2021-29-04 19:58:00 Lootnika INFO: Welcome to http://localhost:8080/admin\r\n"</span><span class="p">,</span>
+    <span class="s2">"2021-29-04 19:58:00 Lootnika INFO: Lootnika started - Source version: 1.2.0-beta.0_nt\r\n"</span><span class="p">,</span>
+
+<span class="p">]}</span>
+</pre></div>
+</div>
+<p>Указывая <code class="xref std std-option docutils literal notranslate"><span class="pre">offset</span></code> который возвращает Лутника вы будете читать файл последовательно пока не достигните его конца или начала.
+Если указать конец файла, то список строк будет пустым. Однако, если указать начало файла, то вы получите первую строку:</p>
+<div class="highlight-monte notranslate"><div class="highlight"><pre><span></span><span class="ow">a=</span><span class="n">log</span><span class="o">?</span><span class="ow">cmd=</span><span class="n">read</span><span class="o">&amp;</span><span class="ow">file=</span><span class="n">lootnika</span><span class="o">.</span><span class="n">log</span><span class="o">&amp;</span><span class="ow">limit=</span><span class="mi">3</span><span class="o">&amp;</span><span class="ow">offset=</span><span class="mi">0</span>
+</pre></div>
+</div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="nt">"offset"</span><span class="p">:</span> <span class="mi">-1</span><span class="p">,</span>
+<span class="nt">"end"</span><span class="p">:</span> <span class="mi">54553</span><span class="p">,</span>
+<span class="nt">"records"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">"2021-26-04 21:34:10 Lootnika INFO: Starting...\r\n"</span>
+<span class="p">]}</span>
+</pre></div>
+</div>
+<p>Так получается потому что Лутника читает строку с той позиции, на которой стоит курсор и только потом переходит на следующую.</p>
 </section>
 </section>
     <div></div>

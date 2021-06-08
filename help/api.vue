@@ -27,6 +27,7 @@
 <li class="toctree-l3"><router-link class="reference internal" href="/index/api/api_control" to="/index/api/api_control#schedule-cancel" v-scroll-to="'/index/api/api_control#schedule-cancel'">Schedule: Cancel</router-link></li>
 </ul>
 </li>
+<li class="toctree-l2"><router-link class="reference internal" href="/index/api/api_control" to="/index/api/api_control#log" v-scroll-to="'/index/api/api_control#log'">Log</router-link></li>
 </ul>
 </li>
 </ul>
