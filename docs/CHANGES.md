@@ -4,6 +4,20 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.3.0-beta.0 (2021.06.08)
+
+### Features
+
+  * New API cmd for schedule: **view and download logs**
+
+### Improvements
+
+  * Check SQL injection in **taskname** for API cmd `a=schedule?cmd=QueueInfo`
+  * Remove client referer from rest logs
+  * updated control panel to v.0.6.0
+
+
+
 ## 1.2.0-beta.0 (2021.06.02)
 
 ### Features
@@ -57,7 +71,7 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 ### Improvements
 
-  * Update forma **CSV** for **lootnika_text** exporter. Add parameters:
+  * Update format **CSV** for **lootnika_text** exporter. Add parameters:
       * `LineTerminator`
       * `Quoting`
       * `Quotechar`

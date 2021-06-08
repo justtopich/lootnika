@@ -447,6 +447,7 @@ if __name__ != '__main__':
     config = open_config()
     check_base_sections(config)
     log, logRest, console = create_logger(config)
+    log.info(f"starting...")
     cfg, exporters = verify_config(config, log)
 
     for i in exporters:

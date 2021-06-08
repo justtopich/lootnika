@@ -2,6 +2,8 @@ from lootnika import (
     pickerType,
     __version__,
     sout,
+    re,
+    os,
     dtime,
     upTime,
     devMode,
@@ -101,12 +103,15 @@ async def handler(request):
         try:
             cmd = args['cmd']
         except KeyError:
-            raise Exception('No command found for schedule action')
+            raise Exception("No 'cmd' parameter")
 
         # TODO async method
         if cmd in ['start', 'pause', 'cancel']:
             try:
                 if 'taskname' in args:
+                    if re.search("[;()@$]", args['taskname'], flags=re.IGNORECASE|re.DOTALL):
+                        raise Exception('Incorrect characters in taskname parameter')
+
                     data['status'], data['message'] = scheduler.execute(cmd, args['taskname'])
                 else:
                     data['status'], data['message'] = scheduler.execute(cmd)
@@ -188,6 +193,147 @@ async def handler(request):
         logRest.error(e)
         data['message'] = e
     finally:
+        return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
+
+@routes.get('/a=log', role=['admin'])
+async def handler(request):
+    def log_reader(file: str, limit: int, offset: [int, None] = None, backward: bool = False) -> (int, int, [str]):
+        """
+        Read a file line by line from any place to any direction
+
+        :param file: file location
+        :param limit: count of retrieving lines
+        :param offset: cursor position. By default read from the end.
+            -1 mean that top of the file is reached
+        :param backward: read backwards
+
+        Returns:
+        current offset, current content length, list with lines
+        """
+        tailLines = []
+        if backward:
+            with open(file, 'rb') as f:
+                f.seek(-2, 2)
+                end = f.tell() - 1
+
+                if offset is None:
+                    offset = f.tell()
+                else:
+                    if offset > end:
+                        offset = end
+                    elif offset < 0:
+                        return -1, end, []
+
+                while len(tailLines) < limit:
+                    f.seek(offset, 0)
+                    try:
+                        while f.read(1) != b'\n':
+                            f.seek(-2, 1)
+                    except OSError:
+                        limit = 0
+                        f.seek(0, 0)
+
+                    offset = f.tell() - 2
+                    if offset < 0:
+                        offset = -1
+                    tailLines.append(f.readline().decode())
+            end += 2
+        else:
+            with open(file, 'r') as f:
+                f.seek(0, 2)
+                end = f.tell() - 1
+
+                if offset is None:
+                    offset = 0
+
+                while len(tailLines) < limit:
+                    if offset >= end:
+                        offset = end
+                        break
+
+                    f.seek(offset, 0)
+                    s = f.readline()
+                    if s != '\n':
+                        tailLines.append(s)
+
+                    try:
+                        if f.read(1) != '\n':
+                            offset = f.tell() - 1
+                    except OSError:
+                        limit = 0
+            # offset += 2
+        return offset, end, tailLines
+
+    data = {'status': 'error', 'message': ''}
+    args = {k.lower(): v.lower() for k, v in request.rel_url.query.items()}
+    status = 500
+    limit = 10
+    backward = True
+    offset = None
+
+    try:
+        try:
+            cmd = args['cmd']
+        except KeyError:
+            raise Exception("No 'cmd' parameter")
+
+        if cmd == 'read':
+            try:
+                file = args['file']
+                assert not re.search(r"[\\d/]", file, flags=re.IGNORECASE|re.DOTALL)
+                file = f'logs/{file}'
+            except Exception:
+                raise Exception("wrong 'file' parameter")
+
+            if 'offset' in args:
+                try:
+                    offset = int(args['offset'])
+                except Exception:
+                    raise Exception("wrong 'offset' parameter")
+
+            if 'limit' in args:
+                try:
+                    limit = int(args['limit'])
+                except Exception:
+                    raise Exception("wrong 'limit' parameter")
+
+            if 'backward' in args:
+                if args['backward'] == 'true':
+                    pass
+                elif args['backward'] == 'false':
+                    backward = False
+                else:
+                    raise Exception("wrong 'backward' parameter")
+
+            data['offset'], data['end'], data['records'] = log_reader(file, limit, offset, backward)
+        elif cmd == 'list':
+            # data['files'] = [i for i in os.listdir('logs/') if i.endswith('.log')]
+            data['files'] = os.listdir(f'logs/')
+
+        elif cmd == 'get':
+            try:
+                file = args['file']
+                assert not re.search(r"[\\d/]", file, flags=re.IGNORECASE | re.DOTALL)
+            except Exception:
+                raise Exception("wrong 'file' parameter")
+
+            return aioweb.FileResponse(
+                f'logs/{file}',
+                chunk_size=256 * 1024,
+                headers={
+                    'Access-Control-Allow-Origin': '*',
+                    'content-disposition': f"attachment; filename*=UTF-8''{file}"
+                })
+        else:
+            raise Warning('Command undefined')
+
+        data['status'] = 'ok'
+        status = 200
+        return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
+    except Exception as e:
+        e = str(e)
+        logRest.error(e)
+        data['message'] = e
         return aioweb.json_response(data, status=status, headers={'Access-Control-Allow-Origin': '*'})
 
 

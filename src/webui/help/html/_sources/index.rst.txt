@@ -37,8 +37,6 @@ Lootnika - это модель для сборки типичных ETL реше
 * :doc:`api` - описание REST API
 
 
-По замечаниям, найденным ошибкам или предложениям пишите на почту alex1.beloglazov@yandex.ru
-
 .. toctree::
    :hidden:
    :maxdepth: 5

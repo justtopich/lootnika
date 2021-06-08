@@ -119,7 +119,8 @@ async def start_server():
             app,
             handle_signals=False,
             access_log=logRest,
-            access_log_format='%a %s "%r" "%{Referer}i"'
+            # access_log_format='%a %s "%r" "%{Referer}i"'
+            access_log_format='%a %s "%r"'
         )
         await runner.setup()
         srv = aioweb.TCPSite(runner, cfg['rest']['host'], cfg['rest']['port'])

@@ -47,7 +47,6 @@ def svc_init():
         def SvcDoRun(self):
             rc = None
             try:
-                log.info(f"starting...")
                 import core
             except Exception as e:
                 with open(f'{homeDir}error.txt', 'w') as f:
@@ -100,7 +99,6 @@ if __name__ == "__main__":
                     logRest.setLevel(10)
                     console.setLevel(10)
 
-                log.info(f"Starting...")
                 import core
 
             elif 'make-doc' in sys.argv:

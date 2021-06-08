@@ -15,4 +15,5 @@ src/temp/
 src/logs/
 src/sphinx-doc/temp/
 src/sphinx-doc/build/
+src/webui/help/html/_sources/
 tests/tess.py
