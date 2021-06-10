@@ -210,8 +210,9 @@ class Document:
         self.uuid = f"{uuid4()}"
         self.taskName = taskName
         self.create_dtm = int(time.time())
-        self.exporter = ""
+        self.export = ""
         self.format = ""
+        self._preTasksDone = False
         self.fields = SortedFields(**fields)
 
         for k, v in fields.items():
@@ -219,14 +220,14 @@ class Document:
         if '@' in self.reference:
             raise Exception(f"Missing the necessary @field@. Reference: {self.reference}")
 
-        self.raw = {
-            'reference': self.reference,
-            'uuid': self.uuid,
-            'taskName': taskName,
-            'create_dtm': self.create_dtm,
-            'exporter': self.exporter,
-            'format': self.format,
-            'fields': self.fields}
+        # self.raw = {
+        #     'reference': self.reference,
+        #     'uuid': self.uuid,
+        #     'taskName': taskName,
+        #     'create_dtm': self.create_dtm,
+        #     'export': self.export,
+        #     'format': self.format,
+        #     'fields': self.fields}
 
     def get_hash(self) -> str:
         """
@@ -240,9 +241,9 @@ class Document:
         dpath incorrect working with datetime types
         (issue #145 https://github.com/dpath-maintainers/dpath-python/issues/145)
         """
-        # return dpath.get(self.raw, f'fields/{path}')
+        # return dpath.get(self.fields, path)
 
-        keys = f'fields/{path}'.split("/")
+        keys = path.split("/")
         val = None
 
         for key in keys:
@@ -252,7 +253,7 @@ class Document:
                 else:
                     val = val.get(key)
             else:
-                val = dict.get(self.raw, key)
+                val = dict.get(self.fields, key)
 
             if not val:
                 break

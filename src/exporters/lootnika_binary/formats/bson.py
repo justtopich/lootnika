@@ -17,7 +17,7 @@ class Converter:
         self.adds = {"DOCUMENTS": []}
 
     def add(self, doc: Document):
-        self.adds["DOCUMENTS"].append(doc.raw)
+        self.adds["DOCUMENTS"].append(doc.fields)
 
     def get(self) -> bytes:
         """

@@ -1,3 +1,5 @@
+from typing import Set, List, Union, Tuple, Dict, Any
+from types import ModuleType
 from lootnika import (
     sout,
     logging, RotatingFileHandler,
@@ -50,7 +52,8 @@ default = {
         "taskCycles": "-1",
         "repeatMin": "60",
         "taskCount": "1",
-        "0": "example"
+        "0": "example",
+        "tasks": "example"
     },
     "logging": {
         "Enable": "True",
@@ -230,7 +233,7 @@ def get_svc_params() -> list:
         raise SystemExit(1)
 
 
-def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> [dict, set]:
+def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> Tuple[Dict[str, any], Set[str]]:
     def verify_rest():
         try:
             cfg['rest']['host'] = config.get("server", "host")
@@ -303,9 +306,16 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 tmp['tasks'] = None
             else:
                 tmp['tasks'] = {}
-                # TODO start=1
                 for n in range(tmp["taskCount"]):
-                    tmp['tasks'][config.get("schedule", str(n)).lower()] = {}
+                    tmp['tasks'][config.get("schedule", str(n + 1)).lower()] = {}
+
+            # tasks = config.get("schedule", 'tasks')
+            # if tasks == '':
+            #     tmp['tasks'] = None
+            # else:
+            #     tmp['tasks'] = {}
+            #     for n in tasks.split(','):
+            #         tmp['tasks'][n.strip()] = {}
 
             if tmp["startTask"]:
                 if tmp['tasks'] is None:
@@ -318,13 +328,13 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             time.sleep(3)
             raise SystemExit(1)
 
-    def verify_tasks() -> set:
+    def verify_tasks() -> Set[str]:
         """
         Any Pickers can have options:
-            - exporter
+            - export
             - overwritetaskstore
 
-        :return: set of tasks exporters
+        :return: set of tasks exports
         """
         try:
             module = __import__(
@@ -368,14 +378,35 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 else:
                     task['overwriteTaskstore'] = False
 
-                # TODO реализовать
-                if config.has_option(taskName, 'exporter'):
-                    task['exporter'] = config.get(taskName, 'exporter')
-                else:
-                    log.warning(f"Task {taskName} use default exporter=export")
-                    task['exporter'] = "export"
+                task['transformTasks'] = []
+                if config.has_option(taskName, 'transformTasks'):
+                    val = config.get(taskName, 'transformTasks').strip()
 
-                exports.append(task['exporter'])
+                    if val == '' or val == ';':
+                        raise Exception("Not set transformTasks")
+                    elif ';' not in val:
+                        raise Exception("No delimiter <;> in transformTasks")
+                    else:
+                        for el in val.split(';'):
+                            if el != '':
+                                task['transformTasks'].append(el.strip())
+
+                exp = config.get(taskName, 'export')
+                if exp == '':
+                    exp = []
+                else:
+                    exp = [n.strip() for n in exp.split(',')]
+
+                if config.has_option(taskName, 'defaultExport'):
+                    task['defaultExport'] = config.get(taskName, 'defaultExport')
+                else:
+                    if len(exp) > 1:
+                        task['defaultExport'] = config.get(taskName, 'defaultExport')
+                    else:
+                        task['defaultExport'] = exp[0]
+                
+                task['export'] = exp
+                exports.extend(exp)
                 cfg['schedule']['tasks'][taskName] = task
             except Exception as e:
                 log.error(f"incorrect parameters in [{taskName}]: {e}")
@@ -391,7 +422,6 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
     return cfg, exports
 
 
-# TODO many endpoints
 def load_exporter(name: str) -> dict:
     """
     load exporters what collected in verify_tasks
@@ -448,7 +478,7 @@ if __name__ != '__main__':
     check_base_sections(config)
     log, logRest, console = create_logger(config)
     log.info(f"starting...")
-    cfg, exporters = verify_config(config, log)
+    cfg, exports = verify_config(config, log)
 
-    for i in exporters:
+    for i in exports:
         cfg = load_exporter(i)

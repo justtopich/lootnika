@@ -311,7 +311,10 @@ class Scheduler:
             self.syncCount[taskId] = [-1, 0, 0, 0, 0, 0, 0, '']
             cf = self.taskList[taskName]
 
-            fc = Factory(taskName, lg, cfg['exporters'][cf['exporter']], self.syncCount[taskId])
+            fc = Factory(
+                taskName, lg,
+                cfg['exporters'][cf['defaultExport']],
+                self.syncCount[taskId], cf['transformTasks'])
             picker = self.Picker(taskId, taskName, cf, lg, ts, fc, self.syncCount[taskId])
             picker.run()
 
