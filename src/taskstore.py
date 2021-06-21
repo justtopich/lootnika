@@ -158,6 +158,7 @@ class SortedFields(OrderedDict):
 
         for key, value in sorted(kwargs.items()):
             # TODO sort list?
+            # TODO sort dict in lists (any _iter_)?
             if isinstance(value, dict):
                 self[key] = SortedFields(**value)
             else:
@@ -189,7 +190,7 @@ class Document:
     It's just json with header and body - header field "fields". "fields" 
     contain all your fields and they are used for custom processing and calculating hash
     """
-    def __init__(self, taskName: str, reference: str, loootId: str, fields: dict):
+    def __init__(self, taskId: str, taskName: str, reference: str, loootId: str, fields: dict):
         """
         Creating document and his reference.
 
@@ -199,6 +200,7 @@ class Document:
             that's not in fields
         """
         try:
+            assert isinstance(taskId, int)
             assert isinstance(taskName, str)
             assert isinstance(reference, str)
             assert isinstance(loootId, str)
@@ -208,6 +210,7 @@ class Document:
 
         self.reference = reference.replace('@loot_id@', loootId, -1)
         self.uuid = f"{uuid4()}"
+        self.taskId = taskId
         self.taskName = taskName
         self.create_dtm = int(time.time())
         self.export = ""
@@ -234,6 +237,23 @@ class Document:
         calculate hash only for meta fields, not header
         """
         return f"{cityhash.CityHash64(bson.dumps(self.fields))}"
+
+    def dumps(self) -> bytes:
+        """
+        return document in bson format
+        """
+        return bson.dumps(self.__dict__)
+
+    def loads(self, lootBson:bytes):
+        """
+        load loonika document from bytes
+        """
+        doc: dict = bson.loads(lootBson)
+        for k, v in doc.items():
+            setattr(self, k, v)
+
+        return self
+
 
     def get_field(self, path: str):
         """

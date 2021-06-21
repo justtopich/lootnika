@@ -143,6 +143,7 @@ async def stop_server(srv: aioweb.TCPSite, runner: aioweb.AppRunner, app: aioweb
 
 
 def start_me():
+    logRest.debug('Starting REST server')
     try:
         loop.run_forever()
     except Exception:

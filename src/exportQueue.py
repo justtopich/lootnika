@@ -1,6 +1,3 @@
-from types import FunctionType
-from typing import List, Union
-
 from lootnika import (
     homeDir,
     os,
@@ -12,28 +9,31 @@ from lootnika import (
     Logger)
 from taskstore import Document
 
+from types import FunctionType
+from typing import List
 
-class Factory(Thread):
+
+class ExportQueue(Thread):
     def __init__(
             self,
-            taskName: str,
-            taskLog: Logger,
+            # taskName: str,
+            # taskLog: Logger,
             exporter: "Picker",
             syncCount: list,
             transformTasks: List[str]):
         """
-        Factory can have two status:
+        # ExportQueue can have two status:
             work
             sending
 
         :param taskName: required for creating subdir in SendFail path
         :param syncCount: Picker syncCount. Required for count up exporting fails
         """
-        super(Factory, self).__init__()
+        super(ExportQueue, self).__init__()
         self.log = taskLog
         self.syncCount = syncCount
-        self.name = 'Factory'
-        self.log.debug("Starting Factory thread")
+        self.name = 'ExportQueue'
+        self.log.debug("Starting ExportQueue thread")
 
         self.docs = Queue()
         self.status = 'work'
@@ -52,7 +52,7 @@ class Factory(Thread):
             try:
                 doc = self.docs.get()
                 if doc == '--stop--':
-                    self.log.debug("Stopping Factory thread")
+                    self.log.debug("Stopping ExportQueue thread")
                     while self.status != 'work':
                         time.sleep(1)
                     break
@@ -77,7 +77,7 @@ class Factory(Thread):
                 self.syncCount[6] += 1
                 if self.log.level == 10:
                     e = traceback.format_exc()
-                self.log.error(f"Factory: {e}")
+                self.log.error(f"ExportQueue: {e}")
             finally:
                 self.docs.task_done()
                 self.status = 'work'
@@ -87,9 +87,9 @@ class Factory(Thread):
         Put lootnika document or command.
         Command can be:
             - --send-- - send parcel immediately\n
-            - --stop-- - stop factory.
+            - --stop-- - stop ExportQueue.
 
-        Factory will loose the package if it has not been sent.
+        ExportQueue will loose the package if it has not been sent.
         Use it for hard stop. For safe stop must use: send, stop
         """
         self.docs.put(doc)
@@ -140,7 +140,7 @@ class Factory(Thread):
     def _load_transform_script(self, script: str) -> FunctionType:
         """
         Search scripts in path and compile for using in
-        Factory module
+        ExportQueue module
 
         :return: module
         """

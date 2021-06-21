@@ -16,10 +16,10 @@ class Converter:
         :param cfgExporter: exporter validated configuration, no needed.
         """
         self.type = "json"
-        self.adds = {"DOCUMENTS": []}
+        self.adds = []
 
     def add(self, doc: Document):
-        self.adds["DOCUMENTS"].append(doc.fields)
+        self.adds.append(doc.fields)
 
     def get(self) -> str:
         """
@@ -28,5 +28,5 @@ class Converter:
         :return: finished parcel. ready to export
         """
         parcel = f"{orjson.dumps(self.adds).decode()}\n\n"
-        self.adds = {"DOCUMENTS": []}
+        self.adds.clear()
         return parcel

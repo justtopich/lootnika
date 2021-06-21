@@ -3,8 +3,6 @@
     Create parcel (final external document) for exporter.
 """
 
-from lootnika import bson
-
 
 class Converter:
     def __init__(self, cfgSection: dict, cfgExporter: dict):
@@ -13,11 +11,11 @@ class Converter:
         :param cfgExporter: exporter validated configuration, no needed.
         """
         assert cfgExporter['batchSize'] == 1, "Allow only batchSize=1"
-        self.type = "bson"
-        self.adds = {}
+        self.type = "stream"
+        self.adds = b''
 
     def add(self, doc: "Document"):
-        self.adds = doc.fields
+        self.adds = doc.fields['content']
 
     def get(self) -> bytes:
         """
@@ -25,6 +23,9 @@ class Converter:
         will added to new parcel.
         :return: finished parcel. ready to export
         """
-        parcel = bson.dumps(self.adds)
-        self.adds.clear()
-        return parcel
+        try:
+            return self.adds
+        except Exception as e:
+            raise Exception(e)
+        finally:
+            self.adds = b''

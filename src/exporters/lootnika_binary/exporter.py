@@ -1,17 +1,18 @@
-from lootnika import configparser
-from conf import create_dirs
+import configparser
 
 
 class Exporter:
-    def __init__(self, name: str):
+    def __init__(self, name: str, env):
         self.type = "lootnika_binary"
         self.name = name
         self.cfg = {}
-        self._filename = -1
+        self.filename = ''
         self._converter = None
+        self.create_dirs = env['create_dirs']
         self.defaultCfg = {
             "format": "bson",
             "path": "outgoing",
+            "fileName": "@loot_id@.data",
             "batchSize": "100",
             "failPath": "export_failed"
         }
@@ -19,16 +20,11 @@ class Exporter:
     def load_config(self, config: configparser) -> dict:
         try:
             self.cfg['batchSize'] = config.getint(self.name, "batchSize")
+            self.cfg['fileName'] = config.get(self.name, 'fileName')
             self.cfg['path'] = config.get(self.name, 'path')
             self.cfg['path'] = self.cfg['path'].replace('\\', '/', -1)
             if not self.cfg['path'].endswith("/"):
                 self.cfg['path'] += "/"
-
-            # TODO тут по аналогии - параметры формата можно в него перенести
-            if config.has_option(self.name, 'extension'):
-                self.cfg['extension'] = config.get(self.name, 'extension')
-            else:
-                self.cfg['extension'] = self.defaultCfg['extension']
 
             try:
                 if config.has_option(self.name, 'failPath'):
@@ -50,7 +46,7 @@ class Exporter:
                                     locals=locals(),
                                     fromlist=['Converter'])
                 Converter = getattr(module, 'Converter')
-                self._converter = Converter(dict(config.items(self.name)))
+                self._converter = Converter(dict(config.items(self.name)), self.cfg)
 
             except ModuleNotFoundError as e:
                 e = f"Not found format {self.cfg['format']} in exporter"
@@ -64,36 +60,26 @@ class Exporter:
             e = f"Bad {self.name} configuration: {e}"
             raise Exception(e)
 
-        create_dirs((self.cfg['path'], self.cfg['failPath']))
+        self.create_dirs((self.cfg['path'], self.cfg['failPath']))
         return self.cfg
 
+    def add(self, doc:"Document"):
+        if self.filename == '':
+            filename = self.cfg['fileName']
+            try:
+                for i in doc.fields:
+                    filename = filename.replace(f'@{i}@', f'{doc.fields[i]}', -1)
+            except Exception as e:
+                raise Exception(f'No field: {e}')
+
+            self.filename = filename
+        self._converter.add(doc)
+
     def export(self, parcel: bytes):
-        # filename = self.filename
-
-        # match = re.findall(r"(?i)({{field:.*?}})", filename)
-        # if match:
-        #     for path in match:
-        #         try:
-        #             path = path
-        #             field = dpath.get(raw, path[8:-2])
-        #         except KeyError as e:
-        #             self.log.warning(f"with creating filename: no document path: {e}")
-        #             field = token_hex(8)
-
-        # filename = filename.replace(path, field)
-
-        # match = re.findall(r"(?i)({{random\(\d+\)?}})", filename)
-        # if match:
-        #     for rule in match:
-        #         hx = token_hex(int(rule[9:-3]))
-        #         filename = filename.replace(rule, hx)
-
-        self._filename += 1
-        with open(
-            f"{self.cfg['path']}{self._filename}.{self.cfg['extension']}",
-            mode='wb'
-        ) as f:
+        with open(f'{self.cfg["path"]}{self.filename}', mode='wb') as f:
             f.write(parcel)
+
+        self.filename = ''
 
     def delete(self, refList: list):
         """Delete not supported by this Exporter"""

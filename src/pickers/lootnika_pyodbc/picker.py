@@ -1,14 +1,13 @@
 from lootnika import time, traceback, Logger
 from taskstore import Document, TaskStore
-from core import scheduler
-from factory import Factory
+from core import scheduler, ExportBroker
 
 import pyodbc
 
 
 class Picker:
     def __init__(self, taskId: int, name: str, task: dict, log: Logger,
-                 taskStore: TaskStore, factory: Factory, syncCount: list):
+                 taskStore: TaskStore, factory: ExportBroker, syncCount: list):
         """
         Initialization
 
@@ -52,8 +51,8 @@ class Picker:
         else:
             self.log.warning('Task refused. Sending collected changes')
             scheduler.check_point(self.taskId, 'cancel')
-            self.factory.put('--send--')
-            self.factory.put('--stop--')
+            # self.factory.put(self.taskId, '--send--')
+            # self.factory.put(self.taskId, '--stop--')
             self.factory.join()
             return True
 
@@ -102,7 +101,7 @@ class Picker:
             :param fetchOne: заберёт одну строку, вернёт один словарь
             :param group: если придёт >1 строк, то упакует в один словарь,
                 т.е. каждое поле будет содержать массив значений.
-            :return: список со словорями, каждый со своим набором полей
+            :return: список со словарями, каждый со своим набором полей
             """
             def row_as_dict(cur, rows):
                 columns = [column[0] for column in cur.description]
@@ -159,13 +158,16 @@ class Picker:
                     for col, val in row.items():
                         if val is not None:
                             # TODO allow get null value?
-                            if group and not isFirst:
-                                try:
-                                    groupBody[col].append(val)
-                                except KeyError:
+                            if group:
+                                if isFirst:
                                     groupBody[col] = [val]
-                                except AttributeError:
-                                    groupBody[col] = [groupBody[col], val]
+                                else:
+                                    try:
+                                        groupBody[col].append(val)
+                                    except KeyError:
+                                        groupBody[col] = [val]
+                                    except AttributeError:
+                                        groupBody[col] = [groupBody[col], val]
                             else:
                                 body[col] = val
 
@@ -211,10 +213,10 @@ class Picker:
                                 for i in fields:
                                     select = select.replace(f'@{i}@', str(fields[i]), -1)
 
-                                sub = {**sub, **parse_rows(select, group=True)[0]}
+                                sub = {**sub, **parse_rows(select, group=False)[0]}
                             fields[name].append(sub)
                     else:
-                        fields[name].append(subFields)
+                        fields[name].extend(subFields)
         return fields
 
     def delete(self):
@@ -265,7 +267,7 @@ class Picker:
                 fields = self.sql_parse(cnx, i)
 
                 try:
-                    doc = Document(self.taskName, self.task['docRef'], str(i), fields)
+                    doc = Document(self.taskId, self.taskName, self.task['docRef'], str(i), fields)
                 except Exception as e:
                     self.log.error(f"Fail to create reference for object with ID={fields['id']}: {e}")
                     self.syncCount[5] += 1
@@ -274,10 +276,10 @@ class Picker:
                 check = self.ts.check_document(doc.reference, doc.get_hash())
                 if check == 1:
                     self.syncCount[3] += 1
-                    self.factory.put(doc)
+                    self.factory.put(self.taskId, doc)
                 elif check == 2:
                     self.syncCount[2] += 1
-                    self.factory.put(doc)
+                    self.factory.put(self.taskId, doc)
                 elif check == -1:
                     self.syncCount[5] += 1
                 else:
@@ -298,12 +300,12 @@ class Picker:
             if self.is_terminated():
                 return
 
-            self.factory.put('--send--')
+            # self.factory.put(self.taskId, '--send--')
             self.delete()
 
             scheduler.check_point(self.taskId)
-            self.factory.put('--stop--')
-            self.factory.join()
+            # self.factory.put(self.taskId, '--stop--')
+            # self.factory.join()
 
         except Exception as e:
             self.syncCount[5] += 1

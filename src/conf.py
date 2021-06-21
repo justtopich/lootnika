@@ -1,5 +1,5 @@
-from typing import Set, List, Union, Tuple, Dict, Any
-from types import ModuleType
+from typing import Set, List, Union, Tuple, Dict, ClassVar
+from dataTypes import Exporter
 from lootnika import (
     sout,
     logging, RotatingFileHandler,
@@ -13,7 +13,13 @@ from lootnika import (
     traceback)
 
 
-__all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dirs', 'get_svc_params']
+__all__ = [
+    'log', 'logRest',
+    'console',
+    'cfg', 'create_dirs',
+    'create_task_logger',
+    'get_svc_params',
+    'exporters']
 
 cfgFileName = 'lootnika.cfg'
 if devMode:
@@ -42,6 +48,9 @@ default = {
         "# Disk free space monitoring": "",
         "pathWatch": "C:\\",
         "critFreeGb": "10"
+    },
+    "transformtasks": {
+        "threads": "2"
     },
     "export": {
         "type": "lootnika_text"
@@ -106,7 +115,7 @@ def open_config() -> configparser.RawConfigParser:
     return config
 
 
-def create_dirs(paths: iter) -> None:
+def create_dirs(paths: List[str]) -> None:
     for i in paths:
         if not os.path.exists(i):
             try:
@@ -391,22 +400,23 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                             if el != '':
                                 task['transformTasks'].append(el.strip())
 
-                exp = config.get(taskName, 'export')
-                if exp == '':
-                    exp = []
+                taskExports = config.get(taskName, 'export')
+                if taskExports == '':
+                    taskExports = []
                 else:
-                    exp = [n.strip() for n in exp.split(',')]
+                    taskExports = [n.strip() for n in taskExports.split(',')]
 
                 if config.has_option(taskName, 'defaultExport'):
                     task['defaultExport'] = config.get(taskName, 'defaultExport')
+                    assert task['defaultExport'] in taskExports, "defaultExport not in export"
                 else:
-                    if len(exp) > 1:
+                    if len(taskExports) > 1:
                         task['defaultExport'] = config.get(taskName, 'defaultExport')
                     else:
-                        task['defaultExport'] = exp[0]
+                        task['defaultExport'] = taskExports[0]
                 
-                task['export'] = exp
-                exports.extend(exp)
+                task['export'] = taskExports
+                exports.extend(taskExports)
                 cfg['schedule']['tasks'][taskName] = task
             except Exception as e:
                 log.error(f"incorrect parameters in [{taskName}]: {e}")
@@ -419,6 +429,10 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
     verify_diskUsage()
     verify_scheduler()
     exports = verify_tasks()
+
+    cfg['transformtasks'] = {'threads': config.getint('transformtasks', 'threads')}
+    assert cfg['transformtasks']['threads'] > 0, "threads must be > 0"
+
     return cfg, exports
 
 
@@ -430,11 +444,16 @@ def load_exporter(name: str) -> dict:
     """
     log.debug(f"Enabled exporter: {name}")
     try:
-        expType = config.get(name, 'type')
+        env = {}
+        for k, v in globals().items():
+            if k in __all__:
+                env[k] = v
 
+        expType = config.get(name, 'type')
         module = __import__(f'exporters.{expType}.exporter', globals=globals(), locals=locals(),  fromlist=['Exporter'])
-        Exporter = getattr(module, 'Exporter')
-        exporter = Exporter(name)
+
+        expModule: ClassVar = getattr(module, 'Exporter')
+        exporter: Exporter = expModule(name, env)
 
         # нужен если указан в задаче, а его нет
         try:

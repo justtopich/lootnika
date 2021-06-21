@@ -14,9 +14,12 @@ from lootnika import (
     __version__)
 from conf import (
     cfg,
+    exports,
     log)
 from datastore import Datastore
 import sphinxbuilder
+
+from types import ModuleType
 
 
 def shutdown_me(signum=1, frame=1):
@@ -57,11 +60,15 @@ def shutdown_me(signum=1, frame=1):
                     log.debug("Stopping Scheduler thread")
                     scheduler.cmd = 'stop'
                     n = 2
-            elif selfControl.myThreads['Datastore']:
+            elif selfControl.myThreads['ExportBroker']:
                 if n < 3:
+                    exportBroker.stop()
+                    n = 3
+            elif selfControl.myThreads['Datastore']:
+                if n < 4:
                     log.debug("Stopping Datastore thread")
                     ds.close()
-                    n = 3
+                    n = 4
             else:
                 break
 
@@ -87,6 +94,7 @@ class SelfControl(Thread):
         self.myThreads = {
             'RestServer': False,
             'Scheduler': False,
+            'ExportBroker': False,
             'Datastore': False}
         self.allThreads = []
         self.pid = os.getpid()
@@ -177,7 +185,7 @@ class SelfControl(Thread):
             time.sleep(self.rate)
 
 
-def load_picker():
+def load_picker() -> ModuleType:
     try:
         module = __import__(f'pickers.{pickerType}.picker', globals=globals(), locals=locals(),  fromlist=['Picker'])
         return getattr(module, 'Picker')
@@ -200,6 +208,12 @@ if __name__ != "__main__":
     ds = Datastore(f'{homeDir}lootnika_tasks_journal.db')
 
     sphinxbuilder.check_rst(ds)
+
+    from exportBroker import ExportBroker
+    exportBroker = ExportBroker(logMain=log, threads=cfg['transformtasks']['threads'], exporters=cfg['exporters'])
+    Thread(name='ExportBroker', target=exportBroker.run, args=()).start()
+    while (False in exportBroker.workersStarted.values()):
+        time.sleep(.5)
 
     from scheduler import Scheduler, first_start_calc
     startTime, taskCycles, repeatMin = first_start_calc(cfg['schedule'])
