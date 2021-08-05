@@ -3,9 +3,9 @@ from lootnika import (
     os,
     copy,
     __version__,
-    pickerType,
+    PICKER_TYPE,
     homeDir,
-    devMode,
+    DEV_MODE,
     asyncio,
     aiohttp,
     aioweb)
@@ -78,7 +78,7 @@ class ACLpolicy:
 class TmplRender:
     def __init__(self, templates: List[str], assets: dict):
         self.assets = assets
-        if devMode:
+        if DEV_MODE:
             print('\n!#REST DISABLE PRERENDER FOR TEMPLATES\n')
             return
         for tmpl in templates:
@@ -98,7 +98,7 @@ class TmplRender:
         return tmpl
 
     def get(self, page: str):
-        if devMode:
+        if DEV_MODE:
             return self.load_tmpl(page)
         else:
             return self.__dict__[page]
@@ -143,6 +143,7 @@ async def stop_server(srv: aioweb.TCPSite, runner: aioweb.AppRunner, app: aioweb
 
 
 def start_me():
+    logRest.debug('Starting REST server')
     try:
         loop.run_forever()
     except Exception:
@@ -261,7 +262,7 @@ if __name__ != "__main__":
     # patch_aiostatic({'/help': ls})
 
     app = aioweb.Application(
-        debug=devMode,
+        debug=DEV_MODE,
         logger=logRest,
         client_max_size=None,
         middlewares=[check_access])
@@ -269,9 +270,9 @@ if __name__ != "__main__":
     from restroutes import routes
 
     aclPolicy = ACLpolicy(routes, cfg['rest']['acl'])
-    routes.static('/help', f'{homeDir}webui/help/html', append_version=devMode)
-    routes.static('/admin', f'{homeDir}webui/admin/html', append_version=devMode)
-    routes.static('/static', f'{homeDir}webui/admin/html/static', append_version=devMode)
+    routes.static('/help', f'{homeDir}webui/help/html', append_version=DEV_MODE)
+    routes.static('/admin', f'{homeDir}webui/admin/html', append_version=DEV_MODE)
+    routes.static('/static', f'{homeDir}webui/admin/html/static', append_version=DEV_MODE)
     app.add_routes(routes)
 
     # TODO AppRunner вызывает свой луп, есть ли смысл в ProactorEventLoop?

@@ -31,8 +31,11 @@ Converter must have:
 
 """
 
-from taskstore import Document
+from models import Document
 import csv, io
+
+
+__version__ = "1.1.0"
 
 
 class Converter:
@@ -71,16 +74,16 @@ class Converter:
 
     def add(self, doc: Document):
         row = []
-        for k, v in doc.raw.items():
+        for k, v in doc.fields.items():
             if k == 'fields':
-                for kk, vv in doc.raw[k].items():
+                for kk, vv in doc.fields[k].items():
                     if not self.isTitled:
                         self.header.append(f"{k}.{kk}")
                     row.append(f"{vv}")
             else:
                 if not self.isTitled:
                     self.header.append(k)
-                row.append(f"{doc.raw[k]}")
+                row.append(f"{doc.fields[k]}")
 
         self.rows.append(row)
         self.isTitled = True

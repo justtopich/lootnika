@@ -1,28 +1,26 @@
-####################################
-#
-# Lootnika data collector. Entry point.
-#
-# ⠀⠀⠀⠀⣠⣶⡾⠏⠉⠙⠳⢦⡀⠀⠀⠀⢠⠞⠉⠙⠲⡀⠀
-# ⠀⠀⠀⣴⠿⠏⠀⠀⠀⠀⠀⠀⢳⡀ ⠀⡏⠀⠀⠀⠀  ⢷
-# ⠀⠀⢠⣟⣋⡀⢀⣀⣀⡀⠀⣀⡀⣧⠀⢸⠀ GOOD⠀⡇
-# ⠀⠀⢸⣯⡭⠁⠸⣛⣟⠆⡴⣻⡲⣿⠀⣸⠀LUCK ⡇
-# ⠀⠀⣟⣿⡭⠀⠀⠀⠀⠀⢱⠀⠀⣿ ⠀⢹⠀⠀⠀  ⡇
-# ⠀⠀⠙⢿⣯⠄⠀⠀⠀⢀⡀⠀⠀⡿⠀⠀⠘⠤⣄⣠⠞⠀
-# ⠀⠀⠀⠀⠹⣶⠆⠀⠀⠀⠀⠀⡴⠃⠀⠀
-# ⠀⠀⠀⠀⠀⢸⣷⡦⢤⡤⢤⣞⣁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-# ⠀⠀⢀⣤⣴⣿⣏⠁⠀⠀⠸⣏⢯⣷⣖⣦⡀⠀⠀⠀⠀⠀⠀
-# ⢀⣾⣽⣿⣿⣿⣿⠛⢲⣶⣾⢉⡷⣿⣿⠵⣿⠀⠀⠀⠀⠀⠀
-# ⣼⣿⠍⠉⣿⡭⠉⠙⢺⣇⣼⡏⠀⠀⠀⣄⢸⠀⠀⠀⠀⠀⠀
-# ⣿⣿⣧⣀⣿.........⣀⣰⣏⣘⣆⣀⠀⠀
-####################################
+"""
+Lootnika ETL framework. Entry point.
+
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⣰⣷⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⣀⣶⣿⣿⣿⣿⣿⣿⣷⣶⣶⣶⣦⣀⡀⠀⢀⣴⣇⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀
+⠀⠀⠀⠀⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀
+⠀⠀⠀⣴⣿⣿⣿⣿⠛⣿⣿⣿⣿⣿⣿⣿⣿⡿⣿⣿⣿⣿⣿⣿⣿⣿⣄⠀⠀⠀
+⠀⠀⣾⣿⣿⣿⣿⣿⣶⣿⣯⣭⣬⣉⣽⣿⣿⣄⣼⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀
+⠀⣸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡄
+⢸⣿⣿⣿⣿⠟⠋⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁⣿⣿⣿⣿⡿⠛⠉⠉⠉⠉⠁
+⠘⠛⠛⠛⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⠛⠛⠃⠀⠀⠀⠀⠀⠀⠀
+- don't scold my code, I have little paws!
+"""
 
 from __init__ import *
+from typing import Final
 
 
-# stillWork = True  # disable shutdown
-stillWork = False
-devMode = False
-# devMode = True
+# WORK_ANYWAY: Final = True  # disable shutdown
+WORK_ANYWAY: Final = False
+# DEV_MODE: Final = False
+# DEV_MODE: Final = True
 # sys.argv.append('run')  # only for debug mode
 # sys.argv.append('make-doc')
 
@@ -65,7 +63,7 @@ def svc_init():
 
 if __name__ == "__main__":
     try:
-        if len(sys.argv) == 1 and not devMode:
+        if len(sys.argv) == 1 and not DEV_MODE:
             if homeDir.endswith('system32/'):
                 # Server 2012 != Win 10
                 homeDir = os.path.dirname(sys.executable) + '/' # Server 2012 != Win 10
@@ -93,7 +91,7 @@ if __name__ == "__main__":
                 raise Exception('Show help')
             elif 'run' in sys.argv:
                 from conf import log, logRest, console
-                if devMode:
+                if DEV_MODE:
                     print('\n!#RUNNING IN DEVELOPER MODE\n')
                     log.setLevel(10)
                     logRest.setLevel(10)

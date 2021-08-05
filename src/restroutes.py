@@ -1,12 +1,12 @@
 from lootnika import (
-    pickerType,
+    PICKER_TYPE,
     __version__,
     sout,
     re,
     os,
     dtime,
-    upTime,
-    devMode,
+    UPTIME,
+    DEV_MODE,
     Thread,
     asyncio,
     aioweb)
@@ -26,7 +26,7 @@ async def handler(request):
     status = 500
     try:
         data['product'] = 'Lootnika data collector'
-        data['picker_type'] = pickerType
+        data['picker_type'] = PICKER_TYPE
         data['version'] = __version__
         data['service_name'] = get_svc_params()[0]
         data['directory'] = homeDir
@@ -49,7 +49,7 @@ async def handler(request):
     status = 500
     try:
         data['status'] = 'ok'
-        data['uptime'] = str(dtime.datetime.now() - upTime).split('.')[0]
+        data['uptime'] = str(dtime.datetime.now() - UPTIME).split('.')[0]
         data = {**data, **selfControl.resourcesUsage}
         status = 200
     except Exception as e:

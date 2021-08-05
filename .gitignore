@@ -6,13 +6,14 @@ venv/
 src/*.txt
 src/*.db
 src/lootnika_dev.cfg
+src/error.txt
 **/__pycache__/
-src/Lootnika/
+src/lootnika/
 src/send_failed/
 src/export_failed/
 src/outgoing/
 src/temp/
-src/logs/
+src/logs/*
 src/sphinx-doc/temp/
 src/sphinx-doc/build/
 src/webui/help/html/_sources/

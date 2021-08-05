@@ -64,8 +64,6 @@ class Datastore(Thread):
 
         cnx.close()
         self.requestQ.task_done()
-        log.debug("Stopped Datastore thread")
-
 
     def _create_db(self) -> sqlite3.Connection:
         """
@@ -140,7 +138,6 @@ class Datastore(Thread):
         cur.close()
         return cnx
 
-
     def execute(self, req:str, arg:tuple=None, res=None, token=None, mode=0):
         """
         :param req: сам запрос
@@ -164,7 +161,6 @@ class Datastore(Thread):
                     break
                 else:
                     return self.status.pop(token)
-
 
     def select(self, req:str, arg=None):
         """
@@ -197,10 +193,8 @@ class Datastore(Thread):
             else:
                 for i in [self.status.pop(token)]: yield i
 
-
     def get_status(self):
         return self.status
-
 
     def close(self, commit=True):
         # TODO закрывать через очередь

@@ -1,5 +1,5 @@
 from lootnika import (
-    stillWork,
+    WORK_ANYWAY,
     time,
     signal,
     sout,
@@ -7,16 +7,19 @@ from lootnika import (
     traceback,
     sys, os,
     homeDir,
-    pickerType,
+    PICKER_TYPE,
     httpClient,
-    platform,
+    PLATFORM,
     psutil,
     __version__)
 from conf import (
     cfg,
+    exports,
     log)
 from datastore import Datastore
 import sphinxbuilder
+
+from types import ModuleType
 
 
 def shutdown_me(signum=1, frame=1):
@@ -57,11 +60,15 @@ def shutdown_me(signum=1, frame=1):
                     log.debug("Stopping Scheduler thread")
                     scheduler.cmd = 'stop'
                     n = 2
-            elif selfControl.myThreads['Datastore']:
+            elif selfControl.myThreads['ExportBroker']:
                 if n < 3:
+                    exportBroker.stop()
+                    n = 3
+            elif selfControl.myThreads['Datastore']:
+                if n < 4:
                     log.debug("Stopping Datastore thread")
                     ds.close()
-                    n = 3
+                    n = 4
             else:
                 break
 
@@ -70,7 +77,7 @@ def shutdown_me(signum=1, frame=1):
     finally:
         selfControl.stop = True
         log.info("Lootnika stopped")
-        if not stillWork:
+        if not WORK_ANYWAY:
             os._exit(1)
 
 
@@ -87,6 +94,7 @@ class SelfControl(Thread):
         self.myThreads = {
             'RestServer': False,
             'Scheduler': False,
+            'ExportBroker': False,
             'Datastore': False}
         self.allThreads = []
         self.pid = os.getpid()
@@ -155,9 +163,9 @@ class SelfControl(Thread):
                 if not self.started:
                     if self.isVerified:
                         if sys.argv[0].lower().endswith('.exe'):
-                            log.info(f"Lootnika started - Executable version: {__version__}_{platform}")
+                            log.info(f"Lootnika started - Executable version: {__version__}_{PLATFORM}")
                         else:
-                            log.info(f"Lootnika started - Source version: {__version__}_{platform}")
+                            log.info(f"Lootnika started - Source version: {__version__}_{PLATFORM}")
 
                         log.info(f"Welcome to http://localhost:{cfg['rest']['port']}/admin")
                         ds.execute("UPDATE lootnika SET self_status='working'")
@@ -177,13 +185,13 @@ class SelfControl(Thread):
             time.sleep(self.rate)
 
 
-def load_picker():
+def load_picker() -> ModuleType:
     try:
-        module = __import__(f'pickers.{pickerType}.picker', globals=globals(), locals=locals(),  fromlist=['Picker'])
+        module = __import__(f'pickers.{PICKER_TYPE}.picker', globals=globals(), locals=locals(), fromlist=['Picker'])
         return getattr(module, 'Picker')
 
     except ModuleNotFoundError as e:
-        log.fatal(f"Can't initialize picker {pickerType}: {e}")
+        log.fatal(f"Can't initialize picker {PICKER_TYPE}: {e}")
         raise SystemExit(1)
     except AttributeError as e:
         log.fatal(f'Wrong picker initializing: {e}')
@@ -200,6 +208,12 @@ if __name__ != "__main__":
     ds = Datastore(f'{homeDir}lootnika_tasks_journal.db')
 
     sphinxbuilder.check_rst(ds)
+
+    from exportBroker import ExportBroker
+    exportBroker = ExportBroker(logMain=log, threads=cfg['transformtasks']['threads'], exporters=cfg['exporters'])
+    Thread(name='ExportBroker', target=exportBroker.run, args=()).start()
+    while (False in exportBroker.workersStarted.values()):
+        time.sleep(.5)
 
     from scheduler import Scheduler, first_start_calc
     startTime, taskCycles, repeatMin = first_start_calc(cfg['schedule'])

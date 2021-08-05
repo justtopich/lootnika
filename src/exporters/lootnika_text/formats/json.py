@@ -3,8 +3,11 @@
     Create parcel (final external document) for exporter.
 """
 
-from taskstore import Document
+from models import Document
 from lootnika import orjson
+
+
+__version__ = "1.1.0"
 
 
 class Converter:
@@ -16,10 +19,10 @@ class Converter:
         :param cfgExporter: exporter validated configuration, no needed.
         """
         self.type = "json"
-        self.adds = {"DOCUMENTS": []}
+        self.adds = []
 
     def add(self, doc: Document):
-        self.adds["DOCUMENTS"].append(doc.raw)
+        self.adds.append(doc.fields)
 
     def get(self) -> str:
         """
@@ -28,5 +31,5 @@ class Converter:
         :return: finished parcel. ready to export
         """
         parcel = f"{orjson.dumps(self.adds).decode()}\n\n"
-        self.adds = {"DOCUMENTS": []}
+        self.adds.clear()
         return parcel

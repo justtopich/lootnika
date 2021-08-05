@@ -1,12 +1,10 @@
 from lootnika import (
-    time, dtime, sout,
-    Timer,
+    time, dtime,
     Thread,
     traceback)
 from conf import log, console, create_task_logger, cfg
-from core import selfControl, shutdown_me, ds
+from core import selfControl, shutdown_me, ds, exportBroker
 from taskstore import TaskStore
-from factory import Factory
 
 
 # TODO причесать или пояснить всё
@@ -47,11 +45,12 @@ class Scheduler:
         self.status = 'ready'
         self.workers = []
         self.curTask = ''
-        self.Picker = None
+        # self.Picker = None
         self.cmd = ''
         self.syncCount = {}  # tasks statistics, see _start_task
 
-    def _mark_task_start(self, taskName: str) -> int:
+    @staticmethod
+    def _mark_task_start(taskName: str) -> int:
         """
         create record in datastore
 
@@ -213,11 +212,9 @@ class Scheduler:
         for ht in self.workers:
             # message(ht,clrSun)
             ht.join()
-
-        log.debug("Stopped Scheduler thread")
         return
 
-    def execute(self, cmd: str, taskName: str =''):
+    def execute(self, cmd: str, taskName='') -> (str, str):
         """интерфейс приёма команд от rest"""
         result = 'error'
         msg = ''
@@ -299,24 +296,31 @@ class Scheduler:
         finally:
             return result, msg
 
-    def _start_task(self, taskName: str):
+    def _start_task(self, taskName: str) -> None:
         self.curTask = taskName
         log.info(f'Start task {taskName}')
         try:
-            lg = create_task_logger(taskName, console)
-            ts = TaskStore(taskName, lg, self.taskList[taskName]['overwriteTaskstore'])
+            taskLog = create_task_logger(taskName, console)
+            taskStore = TaskStore(taskName, taskLog, self.taskList[taskName]['overwriteTaskstore'])
             taskId = self._mark_task_start(taskName)
+            exportBroker.mount_export(taskName, taskId, taskLog)
 
             # [total ,seen, new, differ, delete, task error, export error, last doc id]
             self.syncCount[taskId] = [-1, 0, 0, 0, 0, 0, 0, '']
-            cf = self.taskList[taskName]
-
-            fc = Factory(taskName, lg, cfg['exporters'][cf['exporter']], self.syncCount[taskId])
-            picker = self.Picker(taskId, taskName, cf, lg, ts, fc, self.syncCount[taskId])
+            taskCfg = self.taskList[taskName]
+            picker = self.Picker(
+                taskId,
+                taskName,
+                taskCfg,
+                taskLog,
+                taskStore,
+                exportBroker,
+                self.syncCount[taskId])
             picker.run()
+            exportBroker.unmount_export(taskId)
 
             tab = '\n' + '\t' * 5
-            lg.info(
+            taskLog.info(
                 f"Task done"
                 f"{tab}Total objects: {self.syncCount[taskId][0]}"
                 f"{tab}Seen: {self.syncCount[taskId][1]}"
@@ -327,7 +331,7 @@ class Scheduler:
                 f"{tab}Export errors: {self.syncCount[taskId][6]}")
 
             if self.syncCount[taskId][5] != 0:
-                lg.warning('Task done with some errors. Check logs')
+                taskLog.warning('Task done with some errors. Check logs')
             if self.syncCount[taskId][6] != 0:
                 log.warning(
                     'Task had errors with sending documents. '
@@ -340,7 +344,7 @@ class Scheduler:
             log.error(f"Fail with task {taskName}: {e}")
 
 
-def first_start_calc(cfg: dict, onStart=True):
+def first_start_calc(cfg: dict, onStart=True) -> (dtime.datetime, int, int):
     """
     расчёт времени до первого старта заданий.
     Следующие старты расчитывает сам планировщик
@@ -349,8 +353,8 @@ def first_start_calc(cfg: dict, onStart=True):
     :return:
     """
 
-    def delay_calc(taskStartTime):
-        startTime = dtime.datetime.now()
+    def delay_calc(taskStartTime: str) -> dtime.datetime:
+        st = dtime.datetime.now()
         if taskStartTime.lower() != 'now':
             now = dtime.datetime.now()
             now = now.hour * 3600 + now.minute * 60 + now.second
@@ -359,19 +363,19 @@ def first_start_calc(cfg: dict, onStart=True):
                 nextStart = nextStart.hour * 3600 + nextStart.minute * 60 + nextStart.second
                 if now > nextStart:
                     delay = 86400 - now + nextStart  # сегодня = что прошло+время завтра до старта
-                    startTime += dtime.timedelta(seconds=delay)
+                    st += dtime.timedelta(seconds=delay)
                     if onStart:
                         log.info(f"Tasks will start at {taskStartTime}")
                 else:
                     delay = nextStart - now
-                    startTime += dtime.timedelta(seconds=delay)
+                    st += dtime.timedelta(seconds=delay)
                     if onStart:
                         log.info(f"Tasks will start today at {taskStartTime}")
             except Exception as e:
                 log.error(f'Check parameter taskStartTime: {e}. Correct format used HH:MM:SS')
                 time.sleep(2)
                 shutdown_me(1, '')
-        return startTime
+        return st
 
     taskStartTime = cfg["taskStartTime"]
     taskCycles = cfg["taskCycles"]

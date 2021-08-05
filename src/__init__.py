@@ -13,16 +13,17 @@ import socket
 from http import client as httpClient
 from collections import OrderedDict
 from threading import Thread, Timer, enumerate as get_threads
+import multiprocessing
 from subprocess import Popen, PIPE, STDOUT, DEVNULL
 from secrets import token_hex
-from queue import Queue
+from queue import Queue, PriorityQueue
 from uuid import uuid4
-import traceback
 # from urllib.parse import quote, unquote
 import copy
 import sqlite3
 import asyncio
 import types
+from typing import Final
 
 import orjson
 import bson
@@ -33,25 +34,26 @@ from clickhouse_cityhash import cityhash
 import psutil
 import sphinx
 
-
 __version__ = "1.3.0-beta.0"
-pickerType = "lootnika_pyodbc"
-upTime = dtime.datetime.now()
+PICKER_TYPE: Final = "lootnika_pyodbc"
+# pickerType: Final = "lootnika_mysql"
+UPTIME: Final = dtime.datetime.now()
 # Windows запускает модули exe из папки пользователя
 # Папка должна определяться только исполняемым файлом
 keys = os.path.split(os.path.abspath(os.path.join(os.curdir, __file__)))
-appName = keys[1][:keys[1].find('.')].lower()
-homeDir = sys.argv[0][:sys.argv[0].replace('\\', '/').rfind('/')+1]
-uiDir = f"{homeDir}webui/"
+appName: Final = keys[1][:keys[1].find('.')].lower()
+homeDir: Final = sys.argv[0][:sys.argv[0].replace('\\', '/').rfind('/') + 1]
+uiDir: Final = f"{homeDir}webui/"
 
 if hasattr(sys, "_MEIPASS"):
-    dataDir = sys._MEIPASS + '/'
+    dataDir = sys._MEIPASS + '/'  # pylint: disable=no-member
 else:
     dataDir = './'
 
 
-def sout(msg, clr='white'):
+def sout(msg: any, clr: str = 'white'):
     """
+    :param msg: message
     :param clr: colors available: white|green|sun|violet|breeze|red
     """
     colors = {
@@ -70,13 +72,14 @@ __all__ = [
     'dtime', 'time', 'configparser', 're', 'logging', 'STDOUT', 'Queue',
     'shutil', 'signal', 'Thread', 'Timer', 'Popen', 'PIPE', 'DEVNULL',
     'get_threads', 'token_hex', 'uuid4', 'copy', 'Logger', 'socket',
-    'pickerType', 'asyncio', 'httpClient', 'upTime', 'types',
-    'OrderedDict',
+    'PICKER_TYPE', 'asyncio', 'httpClient', 'UPTIME', 'types',
+    'OrderedDict', 'multiprocessing', 'PriorityQueue',
 
     'sqlite3', 'dpath', 'orjson', 'cityhash', 'aioweb', 'aiohttp', 'bson',
     'psutil', 'sphinx',
 
-    '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout', 'pickerType'
+    '__version__', 'homeDir', 'uiDir', 'dataDir', 'appName', 'sout',
+    'PICKER_TYPE',
 ]
 
 if os.name == "nt":
@@ -86,11 +89,11 @@ if os.name == "nt":
     import servicemanager
 
     __all__.extend(['win32event', 'win32service', 'win32serviceutil', 'servicemanager'])
-    platform = 'nt'
+    PLATFORM: Final = 'nt'
 else:
     # TODO supporting
     # from deamonizer import Daemonize  # custom wrapper
     __all__.append('Daemonize')
-    platform = 'posix'
+    PLATFORM: Final = 'posix'
 
-__all__.append('platform')
+__all__.append('PLATFORM')

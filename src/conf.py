@@ -1,20 +1,28 @@
+from typing import Set, List, Union, Tuple, Dict, ClassVar
+
 from lootnika import (
     sout,
     logging, RotatingFileHandler,
     configparser,
     dtime, time,
     re,
-    devMode,
+    DEV_MODE,
     os, sys,
     homeDir,
-    pickerType,
+    PICKER_TYPE,
     traceback)
+from models import Exporter
 
 
-__all__ = ['log', 'logRest', 'console', 'cfg', 'create_task_logger', 'create_dirs', 'get_svc_params']
+__all__ = [
+    'log', 'logRest',
+    'console',
+    'cfg', 'create_dirs',
+    'create_task_logger',
+    'get_svc_params']
 
 cfgFileName = 'lootnika.cfg'
-if devMode:
+if DEV_MODE:
     cfgFileName = 'lootnika_dev.cfg'
 
 cfg = {
@@ -41,6 +49,9 @@ default = {
         "pathWatch": "C:\\",
         "critFreeGb": "10"
     },
+    "transformtasks": {
+        "threads": "2"
+    },
     "export": {
         "type": "lootnika_text"
     },
@@ -50,7 +61,8 @@ default = {
         "taskCycles": "-1",
         "repeatMin": "60",
         "taskCount": "1",
-        "0": "example"
+        "0": "example",
+        "tasks": "example"
     },
     "logging": {
         "Enable": "True",
@@ -78,6 +90,7 @@ class FakeRe:
         m = self.regex.match(text)
         if m:
             return FakeMatch(m)
+        return None
 
 
 def lowcase_sections(parser: configparser.RawConfigParser) -> configparser.RawConfigParser:
@@ -86,10 +99,9 @@ def lowcase_sections(parser: configparser.RawConfigParser) -> configparser.RawCo
 
 
 def open_config() -> configparser.RawConfigParser:
-    try:
-        open(f"{homeDir}{cfgFileName}", encoding='utf-8')
-    except IOError:
-        open(f"{homeDir}{cfgFileName}", 'tw', encoding='utf-8')
+    if not os.path.exists(f"{homeDir}{cfgFileName}"):
+        with open(f"{homeDir}{cfgFileName}", 'tw', encoding='utf-8') as _:
+            pass
 
     config = configparser.RawConfigParser(comment_prefixes=(['//', '#', ';']), allow_no_value=True)
     config = lowcase_sections(config)
@@ -103,7 +115,7 @@ def open_config() -> configparser.RawConfigParser:
     return config
 
 
-def create_dirs(paths: iter) -> None:
+def create_dirs(paths: List[str]) -> None:
     for i in paths:
         if not os.path.exists(i):
             try:
@@ -230,7 +242,7 @@ def get_svc_params() -> list:
         raise SystemExit(1)
 
 
-def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> [dict, set]:
+def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> Tuple[Dict[str, any], Set[str]]:
     def verify_rest():
         try:
             cfg['rest']['host'] = config.get("server", "host")
@@ -303,9 +315,16 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 tmp['tasks'] = None
             else:
                 tmp['tasks'] = {}
-                # TODO start=1
                 for n in range(tmp["taskCount"]):
-                    tmp['tasks'][config.get("schedule", str(n)).lower()] = {}
+                    tmp['tasks'][config.get("schedule", str(n + 1)).lower()] = {}
+
+            # tasks = config.get("schedule", 'tasks')
+            # if tasks == '':
+            #     tmp['tasks'] = None
+            # else:
+            #     tmp['tasks'] = {}
+            #     for n in tasks.split(','):
+            #         tmp['tasks'][n.strip()] = {}
 
             if tmp["startTask"]:
                 if tmp['tasks'] is None:
@@ -318,17 +337,17 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             time.sleep(3)
             raise SystemExit(1)
 
-    def verify_tasks() -> set:
+    def verify_tasks() -> Set[str]:
         """
         Any Pickers can have options:
-            - exporter
+            - export
             - overwritetaskstore
 
-        :return: set of tasks exporters
+        :return: set of tasks exports
         """
         try:
             module = __import__(
-                f'pickers.{pickerType}.conf',
+                f'pickers.{PICKER_TYPE}.conf',
                 globals=globals(),
                 locals=locals(),
                 fromlist=['load_config', 'defaultCfg'])
@@ -337,7 +356,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             defaultCfg = getattr(module, 'defaultCfg')
 
         except ModuleNotFoundError as e:
-            log.fatal(f"No picker {pickerType}. Check if a module exists in directory pickers")
+            log.fatal(f"No picker {PICKER_TYPE}. Check if a module exists in directory pickers")
             raise SystemExit(1)
         except AttributeError as e:
             log.fatal(f'Wrong picker: {e}')
@@ -368,14 +387,36 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 else:
                     task['overwriteTaskstore'] = False
 
-                # TODO реализовать
-                if config.has_option(taskName, 'exporter'):
-                    task['exporter'] = config.get(taskName, 'exporter')
-                else:
-                    log.warning(f"Task {taskName} use default exporter=export")
-                    task['exporter'] = "export"
+                task['transformTasks'] = []
+                if config.has_option(taskName, 'transformTasks'):
+                    val = config.get(taskName, 'transformTasks').strip()
 
-                exports.append(task['exporter'])
+                    if val == '' or val == ';':
+                        raise Exception("Not set transformTasks")
+                    elif ';' not in val:
+                        raise Exception("No delimiter <;> in transformTasks")
+                    else:
+                        for el in val.split(';'):
+                            if el != '':
+                                task['transformTasks'].append(el.strip())
+
+                taskExports = config.get(taskName, 'export')
+                if taskExports == '':
+                    taskExports = []
+                else:
+                    taskExports = [n.strip() for n in taskExports.split(',')]
+
+                if config.has_option(taskName, 'defaultExport'):
+                    task['defaultExport'] = config.get(taskName, 'defaultExport')
+                    assert task['defaultExport'] in taskExports, "defaultExport not in export"
+                else:
+                    if len(taskExports) > 1:
+                        task['defaultExport'] = config.get(taskName, 'defaultExport')
+                    else:
+                        task['defaultExport'] = taskExports[0]
+
+                task['export'] = taskExports
+                exports.extend(taskExports)
                 cfg['schedule']['tasks'][taskName] = task
             except Exception as e:
                 log.error(f"incorrect parameters in [{taskName}]: {e}")
@@ -388,10 +429,13 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
     verify_diskUsage()
     verify_scheduler()
     exports = verify_tasks()
+
+    cfg['transformtasks'] = {'threads': config.getint('transformtasks', 'threads')}
+    assert cfg['transformtasks']['threads'] > 0, "threads must be > 0"
+
     return cfg, exports
 
 
-# TODO many endpoints
 def load_exporter(name: str) -> dict:
     """
     load exporters what collected in verify_tasks
@@ -400,11 +444,16 @@ def load_exporter(name: str) -> dict:
     """
     log.debug(f"Enabled exporter: {name}")
     try:
-        expType = config.get(name, 'type')
+        env = {}
+        for k, v in globals().items():
+            if k in __all__:
+                env[k] = v
 
+        expType = config.get(name, 'type')
         module = __import__(f'exporters.{expType}.exporter', globals=globals(), locals=locals(),  fromlist=['Exporter'])
-        Exporter = getattr(module, 'Exporter')
-        exporter = Exporter(name)
+
+        expModule: ClassVar = getattr(module, 'Exporter')
+        exporter: Exporter = expModule(name, env)
 
         # нужен если указан в задаче, а его нет
         try:
@@ -448,7 +497,7 @@ if __name__ != '__main__':
     check_base_sections(config)
     log, logRest, console = create_logger(config)
     log.info(f"starting...")
-    cfg, exporters = verify_config(config, log)
+    cfg, exports = verify_config(config, log)
 
-    for i in exporters:
+    for i in exports:
         cfg = load_exporter(i)
