@@ -19,7 +19,7 @@ from typing import Final
 
 # WORK_ANYWAY: Final = True  # disable shutdown
 WORK_ANYWAY: Final = False
-# DEV_MODE: Final = False
+DEV_MODE: Final = False
 # DEV_MODE: Final = True
 # sys.argv.append('run')  # only for debug mode
 # sys.argv.append('make-doc')

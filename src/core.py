@@ -210,7 +210,7 @@ if __name__ != "__main__":
     sphinxbuilder.check_rst(ds)
 
     from exportBroker import ExportBroker
-    exportBroker = ExportBroker(logMain=log, threads=cfg['transformtasks']['threads'], exporters=cfg['exporters'])
+    exportBroker = ExportBroker(logMain=log, threads=cfg['core']['handlerThreads'], exporters=cfg['exporters'])
     Thread(name='ExportBroker', target=exportBroker.run, args=()).start()
     while (False in exportBroker.workersStarted.values()):
         time.sleep(.5)

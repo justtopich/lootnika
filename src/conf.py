@@ -49,8 +49,8 @@ default = {
         "pathWatch": "C:\\",
         "critFreeGb": "10"
     },
-    "transformtasks": {
-        "threads": "2"
+    "core": {
+        "handlerThreads": "2"
     },
     "export": {
         "type": "lootnika_text"
@@ -387,18 +387,20 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 else:
                     task['overwriteTaskstore'] = False
 
-                task['transformTasks'] = []
-                if config.has_option(taskName, 'transformTasks'):
-                    val = config.get(taskName, 'transformTasks').strip()
+                task['handlers'] = []
+                if config.has_option(taskName, 'handlers'):
+                    val = config.get(taskName, 'handlers').strip()
 
                     if val == '' or val == ';':
-                        raise Exception("Not set transformTasks")
+                        raise Exception("Not set handlers")
                     elif ';' not in val:
-                        raise Exception("No delimiter <;> in transformTasks")
+                        raise Exception("No delimiter <;> in handlers")
                     else:
                         for el in val.split(';'):
                             if el != '':
-                                task['transformTasks'].append(el.strip())
+                                # ExportBroker use __import__ so path must be as lib path
+                                el = el.replace('\\', '.', -1).replace('/', '.', -1)
+                                task['handlers'].append(el.strip())
 
                 taskExports = config.get(taskName, 'export')
                 if taskExports == '':
@@ -430,8 +432,8 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
     verify_scheduler()
     exports = verify_tasks()
 
-    cfg['transformtasks'] = {'threads': config.getint('transformtasks', 'threads')}
-    assert cfg['transformtasks']['threads'] > 0, "threads must be > 0"
+    cfg['core'] = {'handlerThreads': config.getint('core', 'handlerThreads')}
+    assert cfg['core']['handlerThreads'] > 0, "threads must be > 0"
 
     return cfg, exports
 

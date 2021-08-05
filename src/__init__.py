@@ -34,7 +34,8 @@ from clickhouse_cityhash import cityhash
 import psutil
 import sphinx
 
-__version__ = "1.3.0-beta.0"
+
+__version__ = "1.4.0-beta.0"
 PICKER_TYPE: Final = "lootnika_pyodbc"
 # pickerType: Final = "lootnika_mysql"
 UPTIME: Final = dtime.datetime.now()

@@ -4,6 +4,18 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 
 
 
+## 1.4.0-beta.0 (2021.08.05)
+
+### Features
+
+  * Multiple exporters for tasks. Single task can export documents in different exporters with different formats. See parameter **export** and **defaultexport**
+
+  * Document processing by external scripts (at this moment only python3). Each exporter can configure to process document like: add/change/remove fields, discard or pass document, create or extract data to new documents. See task parameter **handlers**.
+
+    Processing can be configured to work in few threads. See parameter **handlerThreads** in section **core**
+
+
+
 ## 1.3.0-beta.0 (2021.06.08)
 
 ### Features

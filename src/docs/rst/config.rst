@@ -12,6 +12,7 @@
    config_service
    config_logging
    config_diskUsage
+   config_core
    config_schedule
    config_export
    config_task

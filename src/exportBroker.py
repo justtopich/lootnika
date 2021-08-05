@@ -200,7 +200,7 @@ class ExportBroker(Thread):
             expModule = copy.copy(self.exports[exp])
             expModule.parcelSize = 0
             expModule.queueSize = 0
-            expModule.transformTasks = [(i, self._load_transform_script(i)) for i in taskCfg['transformTasks']]
+            expModule.transformTasks = [(i, self._load_transform_script(i)) for i in taskCfg['handlers']]
             expModule.status = 'work'
             tmp[exp] = expModule
 

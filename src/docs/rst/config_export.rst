@@ -38,6 +38,73 @@ BatchSize
 	BatchSize = 100
 
 
+Handlers
+----------------------------------------
+Список обработчиков документов.
+
+Обработчики - это внешние скрипты с помощью которых вы можете изменять, отбраковывать или создавать новые 
+документы. Лутника вызывает скрипты из папки :file:`scripts` в указанном порядке. Скрипты перечисляются через :guilabel:`;` Обработка выполняется после того как сборщик передаст документ Лутнике, и перед тем как передать его экспортёру.
+
+.. code-block:: cfg
+
+	handlers = py:extract_files.py; py:custom/filter_fields.py
+
+Обработчики пишутся на языке Python3 и выполняются интерпретатором Лутники, т.е. ограничений на использование методов нет.
+Каждый скрипт должен содержать метод ``handler`` который обязательно должен вернуть либо ``Document``, либо ``None``.
+
+.. code-block:: python3
+
+  # extract binary content from document if exist 
+  # and put it into another exporter
+  
+  def handler(doc: "Document", vars):
+      log: "Logger" = vars['log']
+      put_new_doc = vars['put_new_doc']
+      
+      files: [dict] = doc.get_field('files')
+      if files:
+          for file: dict in files:
+		  
+              newDoc = Document(
+                taskId=doc.taskId,
+                taskName=doc.taskName,
+                reference=f'file_{doc.reference}_{file["id"]}',
+                loootId=f'',
+                fields=file
+              )
+			  
+              newDoc.export = 'post_file'
+              put_new_doc(newDoc)
+  
+              newDoc.export = 'post_file_info'
+              del newDoc.fields['content']
+              put_new_doc(newDoc)
+			  
+          del doc.fields['files']
+      else:
+          log.warning(f'Not found files in document {doc.reference}')
+  
+      return doc
+
+
+Для отладки можно импортировать модели данных
+
+.. code-block:: python3
+
+	try:
+		from models import Document
+		from lootnika import sout
+	except:
+		from ..models import Document
+		from ..lootnika import sout
+
+	from logging import Logger
+
+
+.. tip::
+	Лутника может выполнять обработку в несколько потоков. см. :doc:`handlerThreads <config_core>`
+
+
 Список доступных экспортёров:
 
 .. toctree::
