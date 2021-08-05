@@ -1,6 +1,5 @@
 from lootnika import (
-    time, dtime, sout,
-    Timer,
+    time, dtime,
     Thread,
     traceback)
 from conf import log, console, create_task_logger, cfg
@@ -215,7 +214,7 @@ class Scheduler:
             ht.join()
         return
 
-    def execute(self, cmd: str, taskName=''):
+    def execute(self, cmd: str, taskName='') -> (str, str):
         """интерфейс приёма команд от rest"""
         result = 'error'
         msg = ''
@@ -297,7 +296,7 @@ class Scheduler:
         finally:
             return result, msg
 
-    def _start_task(self, taskName: str):
+    def _start_task(self, taskName: str) -> None:
         self.curTask = taskName
         log.info(f'Start task {taskName}')
         try:
@@ -345,7 +344,7 @@ class Scheduler:
             log.error(f"Fail with task {taskName}: {e}")
 
 
-def first_start_calc(cfg: dict, onStart=True):
+def first_start_calc(cfg: dict, onStart=True) -> (dtime.datetime, int, int):
     """
     расчёт времени до первого старта заданий.
     Следующие старты расчитывает сам планировщик
@@ -354,8 +353,8 @@ def first_start_calc(cfg: dict, onStart=True):
     :return:
     """
 
-    def delay_calc(taskStartTime):
-        startTime = dtime.datetime.now()
+    def delay_calc(taskStartTime: str) -> dtime.datetime:
+        st = dtime.datetime.now()
         if taskStartTime.lower() != 'now':
             now = dtime.datetime.now()
             now = now.hour * 3600 + now.minute * 60 + now.second
@@ -364,19 +363,19 @@ def first_start_calc(cfg: dict, onStart=True):
                 nextStart = nextStart.hour * 3600 + nextStart.minute * 60 + nextStart.second
                 if now > nextStart:
                     delay = 86400 - now + nextStart  # сегодня = что прошло+время завтра до старта
-                    startTime += dtime.timedelta(seconds=delay)
+                    st += dtime.timedelta(seconds=delay)
                     if onStart:
                         log.info(f"Tasks will start at {taskStartTime}")
                 else:
                     delay = nextStart - now
-                    startTime += dtime.timedelta(seconds=delay)
+                    st += dtime.timedelta(seconds=delay)
                     if onStart:
                         log.info(f"Tasks will start today at {taskStartTime}")
             except Exception as e:
                 log.error(f'Check parameter taskStartTime: {e}. Correct format used HH:MM:SS')
                 time.sleep(2)
                 shutdown_me(1, '')
-        return startTime
+        return st
 
     taskStartTime = cfg["taskStartTime"]
     taskCycles = cfg["taskCycles"]

@@ -1,3 +1,31 @@
+"""
+Manage Documents flow from pickers to exporters. Call external handlers
+for documents processing It takes Lootnika documents and redirect them to
+exporters queue that set in document
+
+Documents are processing by external scripts. Look:
+ * _load_transform_script
+ * _pre_process
+
+Try to not use high load scripts
+
+Each task mount its exporter instance with its queue, so Broker can have
+two same exporter with different queue.
+
++--------+               +-----------+                  ,--->| exporter A1 |
+| task A |.             .| transform |.                /---->| exporter A2 |
++--------+ \ +-------+ / +-----------+ \ +----------+ / if task A
+            }| queue |{     threads     }| read doc |{
++--------+ / +-------+ \ +-----------+ / +----------+ \ if task B
+| task B |`             `| transform |`                \---->| exporter B1 |
++--------+               +-----------+                  `--->| exporter B2 |
+
+Transform handlers can create new documents and push them to different
+exporter, but only that associated with same task.
+"""
+
+from typing import List, Callable, Dict
+
 from lootnika import (
     traceback,
     Thread,
@@ -5,43 +33,22 @@ from lootnika import (
     time,
     copy,
     sout,
-    logging,
     Logger,
 )
 from conf import cfg
-from dataTypes import Document, Exporter
-
-from typing import List, Tuple, Dict
-from types import FunctionType
-
-
-class WorkerLogMsg:
-    def __init__(self, owner:str,  level: int, text: str):
-        self.owner = owner
-        self.level = level
-        self.text = text
+from models import Document, Exporter, WorkerLogMsg
 
 
 class ExportBroker(Thread):
+    """
+    Manage Documents flow from pickers to exporters.
+    """
     def __init__(
             self,
             logMain: Logger,
             threads: int,
             exporters: Dict[str, Exporter]):
-        """
-        ExportBroker consolidate all exports as exportQueue.
-        It takes Lootnika documents and redirect them to
-        exportQueue that set in document
 
-        :param taskName: required for creating subdir in SendFail path
-        :param syncCount: Picker syncCount. Required for count up exporting fails
-
-        Attributes:
-            log: lootnika main logger
-            exports: loaded exporters from config
-            taskExports: copy of exports for each task instance
-
-        """
         super(ExportBroker, self).__init__()
         self.log = logMain
         self.threads = threads
@@ -59,11 +66,7 @@ class ExportBroker(Thread):
         self.lock = False
         for i in range(1, self.threads + 1):
             self.workersStarted[i] = False
-            pr = Thread(
-                    name=f'worker_{i}',
-                    target=self._worker,
-                    args=(i,)
-                )
+            pr = Thread(name=f'worker_{i}', target=self._worker, args=(i,))
             pr.start()
             self.workers.append(pr)
 
@@ -154,7 +157,7 @@ class ExportBroker(Thread):
             return
 
         expOut.status = 'sending'
-        self.taskLoggers[taskId].info(f'{export}: New export ({expOut.parcelSize})')
+        self.taskLoggers[taskId].info(f'{export}: New export')
 
         try:
             parcel = expOut._converter.get()
@@ -256,7 +259,8 @@ class ExportBroker(Thread):
         # sout('put unlock', 'breeze')
         self.workersQ.put((taskId, doc,))
 
-    def _load_transform_script(self, script: str) -> FunctionType:
+    @staticmethod
+    def _load_transform_script(script: str) -> Callable[[Document, Dict[str,any]], Document]:
         """
         Search scripts in path and compile for using in
         Factory module
@@ -285,11 +289,10 @@ class ExportBroker(Thread):
             raise Exception(f'Fail import script: {e}')
 
     def _pre_process(self, taskId: str, doc: Document) -> Document or None:
-
         taskLog = self.taskLoggers[taskId]
-
         taskLog.debug(f"Processing {doc.reference}")
         exportName = doc.export
+
         for name, task in self.taskExports[taskId][exportName].transformTasks:
             try:
                 doc = task(doc, {'log': self.taskLoggers[taskId], 'put_new_doc': self._pre_process_put})
@@ -302,7 +305,11 @@ class ExportBroker(Thread):
         doc._preTasksDone = True
         return doc
 
-    def _pre_process_put(self, document: Document):
+    def _pre_process_put(self, document: Document) -> None:
+        """
+        Put Document from handler.
+        It will added as new Document with all processing steps
+        """
         doc = copy.deepcopy(document)
         doc._preTasksDone = True
         self.put(doc.taskId, doc)
@@ -312,7 +319,7 @@ class ExportBroker(Thread):
         for i in self.taskExports:
             self.put(i, '--send--')
 
-        for i in self.workers:
+        for _ in self.workers:
             self.workersQ.put(('', '--stop--',))
 
         self.workersLogging.put('--stop--')

@@ -4,6 +4,10 @@
 """
 
 from lootnika import bson
+from models import Document
+
+
+__version__ = "1.0.0"
 
 
 class Converter:

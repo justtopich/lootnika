@@ -2,6 +2,7 @@
     bson serialization for Lootnika document.
     Create parcel (final external document) for exporter.
 """
+from models import Document
 
 
 class Converter:

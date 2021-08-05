@@ -31,8 +31,11 @@ Converter must have:
 
 """
 
-from taskstore import Document
+from models import Document
 import csv, io
+
+
+__version__ = "1.1.0"
 
 
 class Converter:

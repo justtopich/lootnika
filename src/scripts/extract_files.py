@@ -1,14 +1,14 @@
 try:
-    from taskstore import Document
+    from models import Document
     from lootnika import sout
 except:
-    from ..taskstore import Document
+    from ..models import Document
     from ..lootnika import sout
 
 from logging import Logger
 
 
-def handler(doc:Document, vars):
+def handler(doc: Document, vars):
     log: Logger = vars['log']
     put_new_doc = vars['put_new_doc']
 

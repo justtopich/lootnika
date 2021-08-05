@@ -1,83 +1,17 @@
-from typing import OrderedDict, Generator, Dict, List
-from types import FunctionType
+"""
+this module contain models that are using
+in different modules aside from primary
+"""
+
+from dataclasses import dataclass
+from typing import OrderedDict, Union, Dict, List, Tuple, Callable
 from threading import Thread
 import configparser
 from logging import Logger
 from queue import Queue
 import sqlite3
 
-
-class SortedFields(OrderedDict):
-    def __init__(self, **kwargs):
-        super(SortedFields, self).__init__()
-
-    def __str__(self):
-        ...
-
-    def items(self):
-        ...
-
-    def keys_sorted(self):
-        for key in sorted(self.keys()):
-            yield key
-
-    def values(self):
-        ...
-
-
-class Document:
-    """
-    Lootnika Document. Factory can work only with this format.
-    It's just json with header and body - header field "fields". "fields"
-    contain all your fields and they are used for custom processing and calculating hash
-    """
-    def __init__(self, taskId, str, taskName: str, reference: str, loootId: str, fields: dict):
-        """
-        Creating document and his reference.
-
-        :param reference: template to create reference
-        :param loootId: ID of the document in the source.
-            use for replacing @loot_id@ in reference if
-            that's not in fields
-        """
-
-        self.reference = reference
-        self.uuid = ''
-        self.taskName = taskName
-        self.taskId = taskId
-        self.create_dtm = -1
-        self.export = ''
-        self.format = ''
-        self._preTasksDone = False
-        self.fields = SortedFields
-
-    def get_hash(self) -> str:
-        """
-        calculate hash only for meta fields, not header
-        """
-        ...
-
-    def dumps(self) -> bytes:
-        """
-        return document in bson format
-        """
-        ...
-
-    def loads(self, lootBson:bytes):
-        """
-        load loonika document from bytes
-        """
-        ...
-
-
-    def get_field(self, path: str):
-        """
-        using syntax from dpath library
-        dpath incorrect working with datetime types
-        (issue #145 https://github.com/dpath-maintainers/dpath-python/issues/145)
-        """
-        # return dpath.get(self.fields, path)
-        ...
+from document import SortedFields, Document
 
 
 class Converter:
@@ -93,29 +27,22 @@ class Converter:
 
     def get(self) -> any:
         """
-        Finalyze parcel. After export, next documents
+        Finalize parcel. After export, next documents
         will added to new parcel.
         :return: finished parcel. ready to export
         """
         ...
 
 
-def create_dirs(paths: List[str]) -> None:
-    ...
-
-
-def handler(doc:Document, vars: Dict[str, any]) -> Document or False:
-    ...
-
 class Exporter:
     def __init__(self, name: str, env: Dict[str, any]):
         self.type = ''
-        self.name = ''
+        self.name = name
         self.cfg = {}
         self._converter = Converter
-        self.create_dirs = create_dirs
+        self.create_dirs: Callable[[List[str]], None]
         self.defaultCfg: Dict[str, str] = {}
-        self.transformTasks: List[FunctionType] = []
+        self.transformTasks: List[Callable[[Document, Dict[str,any]], Document]] = []
 
     def load_config(self, config: configparser) -> dict:
         ...
@@ -131,15 +58,20 @@ class Exporter:
         ...
 
 
+@dataclass
 class TaskStats:
-    def __int__(self):
-        self.total = -1
-        self.seen = -1
-        self.new = -1
-        self.differ = -1
-        self.deleted = -1
-        self.taskErrors = -1
-        self.exportErrors = -1
+    """
+    task work statistics.
+    Using for checking progress and
+    final report
+    """
+    total = -1
+    seen = -1
+    new = -1
+    differ = -1
+    deleted = -1
+    taskErrors = -1
+    exportErrors = -1
 
 
 class TaskStore:
@@ -189,25 +121,27 @@ class TaskStore:
 
 
 class ExportBroker(Thread):
+    """
+    ExportBroker consolidate all exports as exportQueue.
+    It takes Lootnika documents and redirect them to
+    exportQueue that set in document
+
+    :param taskName: required for creating subdir in SendFail path
+    :param syncCount: Picker syncCount. Required for count up exporting fails
+
+    Attributes:
+        log: lootnika main logger
+        exports: loaded exporters from config
+        taskExports: copy of exports for each task instance
+
+    """
+
     def __init__(
             self,
             logMain: Logger,
             threads: int,
             exporters: Dict[str, Exporter]):
-        """
-        ExportBroker consolidate all exports as exportQueue.
-        It takes Lootnika documents and redirect them to
-        exportQueue that set in document
 
-        :param taskName: required for creating subdir in SendFail path
-        :param syncCount: Picker syncCount. Required for count up exporting fails
-
-        Attributes:
-            log: lootnika main logger
-            exports: loaded exporters from config
-            taskExports: copy of exports for each task instance
-
-        """
         super(ExportBroker, self).__init__()
         self.log = logMain
         self.threads = threads
@@ -281,3 +215,10 @@ class Picker:
 
     def run(self) -> None:
         ...
+
+
+@dataclass
+class WorkerLogMsg:
+    owner: str
+    level: int
+    text: str

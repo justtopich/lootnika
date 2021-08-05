@@ -1,5 +1,6 @@
 from lootnika import time, traceback, Logger
-from taskstore import Document, TaskStore
+from models import Document
+from taskstore import TaskStore
 from core import scheduler, ExportBroker
 
 import pyodbc

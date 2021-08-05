@@ -3,8 +3,11 @@
     Create parcel (final external document) for exporter.
 """
 
-from taskstore import Document
+from models import Document
 from lootnika import orjson
+
+
+__version__ = "1.1.0"
 
 
 class Converter:

@@ -1,4 +1,5 @@
 import configparser
+from models import Document
 
 
 class Exporter:

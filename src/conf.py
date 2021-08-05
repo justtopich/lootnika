@@ -1,16 +1,17 @@
 from typing import Set, List, Union, Tuple, Dict, ClassVar
-from dataTypes import Exporter
+
 from lootnika import (
     sout,
     logging, RotatingFileHandler,
     configparser,
     dtime, time,
     re,
-    devMode,
+    DEV_MODE,
     os, sys,
     homeDir,
-    pickerType,
+    PICKER_TYPE,
     traceback)
+from models import Exporter
 
 
 __all__ = [
@@ -18,11 +19,10 @@ __all__ = [
     'console',
     'cfg', 'create_dirs',
     'create_task_logger',
-    'get_svc_params',
-    'exporters']
+    'get_svc_params']
 
 cfgFileName = 'lootnika.cfg'
-if devMode:
+if DEV_MODE:
     cfgFileName = 'lootnika_dev.cfg'
 
 cfg = {
@@ -90,6 +90,7 @@ class FakeRe:
         m = self.regex.match(text)
         if m:
             return FakeMatch(m)
+        return None
 
 
 def lowcase_sections(parser: configparser.RawConfigParser) -> configparser.RawConfigParser:
@@ -98,10 +99,9 @@ def lowcase_sections(parser: configparser.RawConfigParser) -> configparser.RawCo
 
 
 def open_config() -> configparser.RawConfigParser:
-    try:
-        open(f"{homeDir}{cfgFileName}", encoding='utf-8')
-    except IOError:
-        open(f"{homeDir}{cfgFileName}", 'tw', encoding='utf-8')
+    if not os.path.exists(f"{homeDir}{cfgFileName}"):
+        with open(f"{homeDir}{cfgFileName}", 'tw', encoding='utf-8') as _:
+            pass
 
     config = configparser.RawConfigParser(comment_prefixes=(['//', '#', ';']), allow_no_value=True)
     config = lowcase_sections(config)
@@ -347,7 +347,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
         """
         try:
             module = __import__(
-                f'pickers.{pickerType}.conf',
+                f'pickers.{PICKER_TYPE}.conf',
                 globals=globals(),
                 locals=locals(),
                 fromlist=['load_config', 'defaultCfg'])
@@ -356,7 +356,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
             defaultCfg = getattr(module, 'defaultCfg')
 
         except ModuleNotFoundError as e:
-            log.fatal(f"No picker {pickerType}. Check if a module exists in directory pickers")
+            log.fatal(f"No picker {PICKER_TYPE}. Check if a module exists in directory pickers")
             raise SystemExit(1)
         except AttributeError as e:
             log.fatal(f'Wrong picker: {e}')
@@ -414,7 +414,7 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                         task['defaultExport'] = config.get(taskName, 'defaultExport')
                     else:
                         task['defaultExport'] = taskExports[0]
-                
+
                 task['export'] = taskExports
                 exports.extend(taskExports)
                 cfg['schedule']['tasks'][taskName] = task

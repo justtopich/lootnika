@@ -1,4 +1,5 @@
 import configparser
+from models import Document
 
 
 class Exporter:
@@ -63,7 +64,7 @@ class Exporter:
         self.create_dirs((self.cfg['path'], self.cfg['failPath']))
         return self.cfg
 
-    def add(self, doc:"Document"):
+    def add(self, doc: "Document"):
         if self.filename == '':
             filename = self.cfg['fileName']
             try:
