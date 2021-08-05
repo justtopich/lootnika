@@ -53,7 +53,7 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="picker_lootnika_mysql_readme.html#index-2">id</a>, <a href="picker_lootnika_pyodbc_readme.html#index-3">[1]</a>
+      <li><a href="picker_lootnika_pyodbc_readme.html#index-3">id</a>
 </li>
   </ul></td>
 </tr></table>
@@ -61,7 +61,7 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="picker_lootnika_mysql_readme.html#index-0">loot_id</a>, <a href="picker_lootnika_mysql_readme.html#index-1">[1]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-1">[2]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-2">[3]</a>
+      <li><a href="picker_lootnika_pyodbc_readme.html#index-1">loot_id</a>, <a href="picker_lootnika_pyodbc_readme.html#index-2">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -75,9 +75,9 @@
       <ul>
         <li><a href="picker_lootnika_pyodbc_readme.html#index-0">DRIVER</a>
 </li>
-        <li><a href="picker_lootnika_mysql_readme.html#index-2">id</a>, <a href="picker_lootnika_pyodbc_readme.html#index-3">[1]</a>
+        <li><a href="picker_lootnika_pyodbc_readme.html#index-3">id</a>
 </li>
-        <li><a href="picker_lootnika_mysql_readme.html#index-0">loot_id</a>, <a href="picker_lootnika_mysql_readme.html#index-1">[1]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-1">[2]</a>, <a href="picker_lootnika_pyodbc_readme.html#index-2">[3]</a>
+        <li><a href="picker_lootnika_pyodbc_readme.html#index-1">loot_id</a>, <a href="picker_lootnika_pyodbc_readme.html#index-2">[1]</a>
 </li>
       </ul></li>
   </ul></td>

@@ -33,6 +33,10 @@
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_diskUsage" to="/index/config/config_diskUsage#critfreegb" v-scroll-to="'/index/config/config_diskUsage#critfreegb'">CritFreeGb</router-link></li>
 </ul>
 </li>
+<li class="toctree-l1"><router-link class="reference internal" href="/index/config/config_core" to="/index/config/config_core">Секция Core</router-link><ul>
+<li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_core" to="/index/config/config_core#handlerthreads" v-scroll-to="'/index/config/config_core#handlerthreads'">handlerThreads</router-link></li>
+</ul>
+</li>
 <li class="toctree-l1"><router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule">Секция Schedule</router-link><ul>
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule#enable" v-scroll-to="'/index/config/config_schedule#enable'">Enable</router-link></li>
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_schedule" to="/index/config/config_schedule#taskstarttime" v-scroll-to="'/index/config/config_schedule#taskstarttime'">TaskStartTime</router-link></li>
@@ -43,7 +47,8 @@
 </li>
 <li class="toctree-l1"><router-link class="reference internal" href="/index/config/config_export" to="/index/config/config_export">Секция Export</router-link><ul>
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_export" to="/index/config/config_export#type" v-scroll-to="'/index/config/config_export#type'">Type</router-link></li>
-<li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_export" to="/index/config/config_export#batchsize" v-scroll-to="'/index/config/config_export#batchsize'">BatchSize</router-link><ul>
+<li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_export" to="/index/config/config_export#batchsize" v-scroll-to="'/index/config/config_export#batchsize'">BatchSize</router-link></li>
+<li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_export" to="/index/config/config_export#handlers" v-scroll-to="'/index/config/config_export#handlers'">Handlers</router-link><ul>
 <li class="toctree-l3"><router-link class="reference internal" href="/index/config/config_export/exporter_lootnika_binary_index2" to="/index/config/config_export/exporter_lootnika_binary_index2">lootnika binary</router-link><ul>
 <li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_export/exporter_lootnika_binary_index2" to="/index/config/config_export/exporter_lootnika_binary_index2#format" v-scroll-to="'/index/config/config_export/exporter_lootnika_binary_index2#format'">Format</router-link></li>
 <li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_export/exporter_lootnika_binary_index2" to="/index/config/config_export/exporter_lootnika_binary_index2#extension" v-scroll-to="'/index/config/config_export/exporter_lootnika_binary_index2#extension'">Extension</router-link></li>
@@ -72,20 +77,6 @@
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_task" to="/index/config/config_task#type" v-scroll-to="'/index/config/config_task#type'">Type</router-link></li>
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_task" to="/index/config/config_task#exporter" v-scroll-to="'/index/config/config_task#exporter'">Exporter</router-link></li>
 <li class="toctree-l2"><router-link class="reference internal" href="/index/config/config_task" to="/index/config/config_task#overwritetaskstore" v-scroll-to="'/index/config/config_task#overwritetaskstore'">OverwriteTaskstore</router-link><ul>
-<li class="toctree-l3"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme">lootnika MySQL</router-link><ul>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#dbhost" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#dbhost'">DBhost</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#dbport" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#dbport'">DBport</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#dbscheme" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#dbscheme'">DBscheme</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#dbusr" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#dbusr'">DBusr</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#dbpsw" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#dbpsw'">DBpsw</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#skipemptyrows" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#skipemptyrows'">SkipEmptyRows</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#docref" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#docref'">DocRef</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#selectid" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#selectid'">SelectID</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#id2" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#id2'">SelectFields</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#branchname" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#branchname'">BranchName</router-link></li>
-<li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_mysql_readme" to="/index/config/config_task/picker_lootnika_mysql_readme#id5" v-scroll-to="'/index/config/config_task/picker_lootnika_mysql_readme#id5'">SelectBranch</router-link></li>
-</ul>
-</li>
 <li class="toctree-l3"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_pyodbc_readme" to="/index/config/config_task/picker_lootnika_pyodbc_readme">lootnika ODBC</router-link><ul>
 <li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_pyodbc_readme" to="/index/config/config_task/picker_lootnika_pyodbc_readme#cnxstring" v-scroll-to="'/index/config/config_task/picker_lootnika_pyodbc_readme#cnxstring'">cnxString</router-link></li>
 <li class="toctree-l4"><router-link class="reference internal" href="/index/config/config_task/picker_lootnika_pyodbc_readme" to="/index/config/config_task/picker_lootnika_pyodbc_readme#skipemptyrows" v-scroll-to="'/index/config/config_task/picker_lootnika_pyodbc_readme#skipemptyrows'">SkipEmptyRows</router-link></li>
