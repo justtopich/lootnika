@@ -1,4 +1,4 @@
-from typing import Set, List, Union, Tuple, Dict, ClassVar
+from typing import Set, List, Union, Tuple, Dict, ClassVar, Iterator
 
 from lootnika import (
     sout,
@@ -345,6 +345,24 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
 
         :return: set of tasks exports
         """
+
+        def get_handlers(hName: str) -> Iterator[str]:
+            if config.has_option(taskName, hName):
+                val = config.get(taskName, hName).strip()
+
+                if val == '' or val == ';':
+                    raise Exception(f"Not set {hName}")
+                elif ';' not in val:
+                    raise Exception(f"No delimiter <;> in {hName}")
+                else:
+                    for el in val.split(';'):
+                        if el != '':
+                            # ExportBroker use __import__ so path must be as lib path
+                            el = el.replace('\\', '.', -1).replace('/', '.', -1)
+                            yield el.strip()
+            else:
+                return ()
+
         try:
             module = __import__(
                 f'pickers.{PICKER_TYPE}.conf',
@@ -387,20 +405,8 @@ def verify_config(config: configparser.RawConfigParser, log: logging.Logger) -> 
                 else:
                     task['overwriteTaskstore'] = False
 
-                task['handlers'] = []
-                if config.has_option(taskName, 'handlers'):
-                    val = config.get(taskName, 'handlers').strip()
-
-                    if val == '' or val == ';':
-                        raise Exception("Not set handlers")
-                    elif ';' not in val:
-                        raise Exception("No delimiter <;> in handlers")
-                    else:
-                        for el in val.split(';'):
-                            if el != '':
-                                # ExportBroker use __import__ so path must be as lib path
-                                el = el.replace('\\', '.', -1).replace('/', '.', -1)
-                                task['handlers'].append(el.strip())
+                task['handlersNew'] = tuple(get_handlers('handlersNew'))
+                task['handlersDelete'] = tuple(get_handlers('handlersDelete'))
 
                 taskExports = config.get(taskName, 'export')
                 if taskExports == '':

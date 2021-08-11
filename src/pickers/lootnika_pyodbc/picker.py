@@ -1,4 +1,4 @@
-from lootnika import time, traceback, Logger
+from lootnika import time, traceback, Logger, sout
 from models import Document
 from taskstore import TaskStore
 from core import scheduler, ExportBroker
@@ -222,9 +222,11 @@ class Picker:
 
     def delete(self):
         refList = self.ts.delete_unseen()
-        if refList:
-            self.syncCount[4] = len(refList)
-            self.factory.send_delete(refList)
+
+        for ref in refList:
+            self.log.info(f"Delete {ref}")
+            self.factory.put(self.taskId, Document(self.taskId, self.taskName, ref, '', {}), deleted=True)
+            self.syncCount[4] += 1
 
     def run(self):
         self.log.info(f"Task is running")

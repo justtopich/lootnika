@@ -35,26 +35,140 @@ class Converter:
 
 
 class Exporter:
+    """
+    Some attributes ExportBroker set himself and you don't need
+    use them.
+
+    attributes:
+        type: name of Exporter
+        name: name of Export in lootnika cfg file
+        cfg: Exporter actual configuration that give lootnika
+        defaultCfg: Exporter configuration example
+        _converter: format of Exporter that contain Converter class
+        create_dirs: function for creating dirs
+
+    attributes by Broker:
+        parcelSize: count of documents that ready to export. Calc by Broker
+        queueSize: count of documents that in queue to export. Calc by Broker
+        handlersNew: handlers for new docs (set in lootnika cfg file)
+        handlersDelete: handlers for deleted docs (set in lootnika cfg file)
+        status: actual info about what Exporter doing
+    """
     def __init__(self, name: str, env: Dict[str, any]):
         self.type = ''
         self.name = name
         self.cfg = {}
+        self.parcelSize = 0
+        self.queueSize = 0
         self._converter = Converter
         self.create_dirs: Callable[[List[str]], None]
         self.defaultCfg: Dict[str, str] = {}
-        self.transformTasks: List[Callable[[Document, Dict[str,any]], Document]] = []
+        self.handlersNew: List[Callable[[Document, Dict[str, any]], Document]] = []
+        self.handlersDelete: List[Callable[[Document, Dict[str, any]], Document]] = []
+        self.status = ''
 
-    def load_config(self, config: configparser) -> dict:
+    def load_config(self, config: configparser) -> Dict[str, any]:
         ...
 
-    def add(self, doc: Document) -> None:
+    def add_new(self, doc: Document) -> None:
+        """
+        new or changed Documents
+        """
         ...
 
     def export(self, parcel: any) -> None:
+        """
+        Export Documents to your destination.
+
+        """
         ...
 
-    def delete(self, refList: list) -> None:
-        """Delete not supported by this Exporter"""
+    def add_deleted(self, doc: Document) -> None:
+        """
+        Documents that have been deleted in source.
+        Exporter may not supported this operation, but
+        method must be.
+        """
+        ...
+
+
+class ExportBroker(Thread):
+    """
+    Manage Documents flow from pickers to exporters.
+    """
+    def __init__(self, logMain: Logger, threads: int, exporters: Dict[str, Exporter]):
+        super(ExportBroker, self).__init__()
+        self.log = logMain
+        self.threads = threads
+        self.name = 'ExportBroker'
+
+        self.workersQ = Queue(maxsize=threads + 1)
+        self.workersLogging = Queue(maxsize=1000)
+        self.exports = exporters
+        self.taskExports: Dict[int, Dict[str, Exporter]] = {}
+        self.defaultExports: Dict[int, str] = {}
+        self.taskLoggers: Dict[int, Logger] = {}
+        self.workersStarted: Dict[int, bool] = {}
+        self.workers: List[Thread] = []
+        self.lock = False
+
+    def _worker(self, number: int):
+        ...
+
+    def _send(self, taskId: int, exportName: str):
+        ...
+
+    def mount_export(self, taskName: str, taskId: int, taskLog: Logger) -> None:
+        """
+        Create copy of exporter for task instance
+        :param taskName:
+        :param taskId:
+        :param taskLog:
+        :return:
+        """
+        ...
+
+    def unmount_export(self, taskId: int) -> None:
+        ...
+
+    def put(self, taskId: int, doc: Union[Document, str], deleted=False, priority=5) -> None:
+        """
+
+        :param taskId:
+        :param doc: Document or command '--send--'
+        :param deleted: flag for deleted Document
+        :param priority:
+        :return:
+        """
+        ...
+
+    @staticmethod
+    def _load_transform_script(script: str) -> Callable[[Document, Dict[str,any]], Union[Document, None]]:
+        """
+        Search scripts in path and compile for using in
+        Factory module
+
+        :return: module
+        """
+        ...
+
+    def _pre_process(self, taskId: int, doc: Document, deleted: bool) -> Document or None:
+        ...
+
+    def _handler_create_document(self, document: Document, deleted=False) -> None:
+        """
+        Put Document from handler.
+        It will added as new Document with all processing steps
+
+        :param document: lootnika Document
+        :param deleted: flag for deleted document
+        """
+        ...
+
+    def stop(self):
+        ...
+
+    def run(self):
         ...
 
 
@@ -117,78 +231,6 @@ class TaskStore:
         ...
 
     def delete_unseen(self) -> list:
-        ...
-
-
-class ExportBroker(Thread):
-    """
-    ExportBroker consolidate all exports as exportQueue.
-    It takes Lootnika documents and redirect them to
-    exportQueue that set in document
-
-    :param taskName: required for creating subdir in SendFail path
-    :param syncCount: Picker syncCount. Required for count up exporting fails
-
-    Attributes:
-        log: lootnika main logger
-        exports: loaded exporters from config
-        taskExports: copy of exports for each task instance
-
-    """
-
-    def __init__(
-            self,
-            logMain: Logger,
-            threads: int,
-            exporters: Dict[str, Exporter]):
-
-        super(ExportBroker, self).__init__()
-        self.log = logMain
-        self.threads = threads
-        self.name = ''
-
-        self.workersQ = Queue
-        self.workersLogging = Queue
-        self.exports = exporters
-        self.taskExports: Dict[str, Dict[str, Exporter]] = {}
-        self.defaultExports = {}
-        self.taskLoggers = {}
-        self.workersStarted = {}
-        self.workers: List[Thread] = []
-        self.lock = False
-
-    def _worker(self, number: int) -> None:
-        ...
-
-    def send(self, taskId) -> None:
-        ...
-
-    def mount_export(self, taskId: str, exportLs: List[str], default: str, taskLog: Logger) -> None:
-        """
-        Create copy of exporter for task instance
-        :param taskId:
-        :param exportLs:
-        :param default:
-        :param taskLog:
-        :return:
-        """
-        ...
-
-    def unmount_export(self, taskId: str) -> None:
-        ...
-
-    def put(self, taskId: str, doc: Document, export='', priority=5) -> None:
-        """
-
-        :param taskId:
-        :param doc: Document or command '--send--'
-        :param export: only that set in task
-        :param priority:
-        :return:
-        """
-        ...
-
-    def run(self):
         ...
 
 

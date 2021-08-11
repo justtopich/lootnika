@@ -64,7 +64,7 @@ class Exporter:
         self.create_dirs((self.cfg['path'], self.cfg['failPath']))
         return self.cfg
 
-    def add(self, doc: "Document"):
+    def add_new(self, doc: "Document"):
         if self.filename == '':
             filename = self.cfg['fileName']
             try:
@@ -82,7 +82,7 @@ class Exporter:
 
         self.filename = ''
 
-    def delete(self, refList: list):
+    def add_deleted(self, doc: "Document"):
         """Delete not supported by this Exporter"""
         ...
         # for ref in refList:

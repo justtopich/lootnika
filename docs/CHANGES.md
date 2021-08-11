@@ -2,6 +2,19 @@
 
 Check for the last version on [https://github.com/justtopich/lootnika](https://github.com/justtopich/lootnika)
 
+## 1.5.0-beta.0 (2021.08.11)
+
+### Features
+
+  * Delete unseen documents. Pickers can ask Lootnika to get deleted references and push them back to delete. This references can processing by external scripts as usual documents. 
+    *NOTE: Lootnika redirect deleted references to exporters and they decide what to do, but not all of them can delete.*
+
+### Improvements
+
+  * Task parameter **handlers** replaced on the two parameters:
+      * **handlersNew** - scripts for new or changed documents
+      * **handlersDelete** - for deleted documents
+
 
 
 ## 1.4.0-beta.0 (2021.08.05)
@@ -9,7 +22,6 @@ Check for the last version on [https://github.com/justtopich/lootnika](https://g
 ### Features
 
   * Multiple exporters for tasks. Single task can export documents in different exporters with different formats. See parameter **export** and **defaultexport**
-
   * Document processing by external scripts (at this moment only python3). Each exporter can configure to process document like: add/change/remove fields, discard or pass document, create or extract data to new documents. See task parameter **handlers**.
 
     Processing can be configured to work in few threads. See parameter **handlerThreads** in section **core**

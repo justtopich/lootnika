@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from lootnika import (
     sqlite3,
     homeDir,
@@ -25,7 +27,6 @@ class TaskStore:
         to store information about seen documents
 
         :param taskName: will create taskName.db file
-        :return: None on error
         """
         if self.overwrite:
             self.log.warning(f"Taskstore will overwrite!")
@@ -123,7 +124,14 @@ class TaskStore:
             self.log.error(f'{e}')
             return status
 
-    def delete_unseen(self) -> list:
+    def delete_unseen(self) -> Iterable[str]:
+        """
+        use in the end of task.
+        Delete all documents without new hash
+        and return references
+        """
+        rows = ()
+
         try:
             cur = self.cnx.cursor()
             cur.execute("SELECT ref FROM documents WHERE status='old'")
@@ -134,6 +142,7 @@ class TaskStore:
             self.log.warning(f"Taskstore can't define deleted objects: {e}")
 
         if rows:
+            rows = [i[0] for i in rows]
             try:
                 cur.execute("DELETE FROM documents WHERE status='old'")
                 self.cnx.commit()
@@ -142,4 +151,5 @@ class TaskStore:
                 if self.log.level == 10:
                     e = traceback.format_exc()
                 self.log.warning(f"Fail to erase records about deleted objects from taskstore: {e}")
-            return rows
+
+        return rows

@@ -13,8 +13,8 @@ Lootnika ETL framework. Entry point.
 - don't scold my code, I have little paws!
 """
 
-from __init__ import *
 from typing import Final
+from __init__ import *
 
 
 # WORK_ANYWAY: Final = True  # disable shutdown

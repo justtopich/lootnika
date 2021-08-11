@@ -24,7 +24,7 @@ Transform handlers can create new documents and push them to different
 exporter, but only that associated with same task.
 """
 
-from typing import List, Callable, Dict
+from typing import List, Callable, Dict, Union
 
 from lootnika import (
     traceback,
@@ -43,12 +43,7 @@ class ExportBroker(Thread):
     """
     Manage Documents flow from pickers to exporters.
     """
-    def __init__(
-            self,
-            logMain: Logger,
-            threads: int,
-            exporters: Dict[str, Exporter]):
-
+    def __init__(self, logMain: Logger, threads: int, exporters: Dict[str, Exporter]):
         super(ExportBroker, self).__init__()
         self.log = logMain
         self.threads = threads
@@ -58,12 +53,13 @@ class ExportBroker(Thread):
         self.workersQ = Queue(maxsize=threads + 1)
         self.workersLogging = Queue(maxsize=1000)
         self.exports = exporters
-        self.taskExports: Dict[str, Dict[str, Exporter]] = {}
-        self.defaultExports: Dict[str, str] = {}
-        self.taskLoggers: Dict[str, Logger] = {}
+        self.taskExports: Dict[int, Dict[str, Exporter]] = {}
+        self.defaultExports: Dict[int, str] = {}
+        self.taskLoggers: Dict[int, Logger] = {}
         self.workersStarted: Dict[int, bool] = {}
         self.workers: List[Thread] = []
         self.lock = False
+
         for i in range(1, self.threads + 1):
             self.workersStarted[i] = False
             pr = Thread(name=f'worker_{i}', target=self._worker, args=(i,))
@@ -75,14 +71,15 @@ class ExportBroker(Thread):
         self.workersStarted[number] = True
 
         while True:
-            taskId: str; doc: Document
-            taskId, doc = self.workersQ.get()
+            taskId: int; doc: Document; isDeleted: bool
+            taskId, doc, isDeleted = self.workersQ.get()
             # sout(doc, 'violet')
 
             try:
                 if doc == '--stop--':
                     self.log.debug(f"Stopping ExportBroker queue {number}")
                     break
+
                 elif doc == '--send--':
                     while self.lock:
                         time.sleep(.05)
@@ -97,59 +94,61 @@ class ExportBroker(Thread):
                             except Exception as e:
                                 self.taskLoggers[taskId].error(f'{name}: {e}')
 
+                        expOut.queueSize -= 1
                     self.lock = False
                     # sout('worker unlock', 'breeze')
                 else:
-                    expOut = doc.export
-                    expModule = self.taskExports[taskId][expOut]
+                    exporterOut = doc.export
+                    expModule = self.taskExports[taskId][exporterOut]
 
-                    if not doc._preTasksDone:
-                        doc.exporter = expModule.type
-                        doc.format = expModule._converter.type
-                        doc = self._pre_process(taskId, doc)
-                        if not doc:
-                            continue
+                    try:
+                        if not doc._preTasksDone:
+                            doc.exporter = expModule.type
+                            doc.format = expModule._converter.type
+                            doc = self._pre_process(taskId, doc, isDeleted)
+                            if not doc:
+                                expModule.queueSize -= 1
+                                continue
 
-                    expModule.parcelSize += 1
-                    expModule.add(doc)
+                        if isDeleted:
+                            expModule.add_deleted(doc)
+                        else:
+                            expModule.parcelSize += 1
+                            expModule.add_new(doc)
 
-                    while self.lock:
-                        time.sleep(.05)
+                        while self.lock:
+                            time.sleep(.05)
 
-                    self.lock = True
-                    # sout('worker lock', 'breeze')
-                    for k, v in self.taskExports[taskId].items():
-                        if v.parcelSize >= v.cfg['batchSize']:
-                            try:
-                                self._send(taskId, k)
-                                v.parcelSize = 0
-                            except Exception as e:
-                                self.taskLoggers[taskId].error(f'{name}: {e}')
+                        self.lock = True
+                        # sout('worker lock', 'breeze')
+                        for name, expOut in self.taskExports[taskId].items():
+                            if expOut.parcelSize >= expOut.cfg['batchSize']:
+                                try:
+                                    self._send(taskId, name)
+                                    expOut.parcelSize = 0
+                                except Exception as e:
+                                    self.taskLoggers[taskId].error(f'{name}: {e}')
 
-                    self.lock = False
+                        self.lock = False
+                    except Exception as e:
+                        expModule.queueSize -= 1
+                        raise Exception(f"Add Document: {e}")
+
+                    expModule.queueSize -= 1
             except Exception as e:
                 # self.syncCount[6] += 1
                 # if log.level == 10:
                 e = traceback.format_exc()
                 sout(e, 'red')
-            #     log.error(f"Factory: {e}")
+                self.log.fatal(f"ExportBroker: {e}")
             finally:
                 self.workersQ.task_done()
-
-                if doc == '--send--':
-                    for exp in self.taskExports[taskId].values():
-                        exp.queueSize -= 1
-                elif doc == '--stop--':
-                    pass
-                else:
-                    self.taskExports[taskId][expOut].queueSize -= 1
-
                 # for i in self.taskExports.values():
                 #     for k, v in i.items():
                 #         sout(f'{k} = {v.queueSize}', 'sun')
 
-    def _send(self, taskId: str, export: str):
-        expOut = self.taskExports[taskId][export]
+    def _send(self, taskId: int, exportName: str):
+        expOut = self.taskExports[taskId][exportName]
         while expOut.status == 'sending':
             time.sleep(.2)
 
@@ -157,7 +156,7 @@ class ExportBroker(Thread):
             return
 
         expOut.status = 'sending'
-        self.taskLoggers[taskId].info(f'{export}: New export')
+        self.taskLoggers[taskId].info(f'{exportName}: New export')
 
         try:
             parcel = expOut._converter.get()
@@ -178,7 +177,7 @@ class ExportBroker(Thread):
         finally:
             expOut.status = 'work'
 
-    def mount_export(self, taskName: str, taskId: str, taskLog: Logger) -> None:
+    def mount_export(self, taskName: str, taskId: int, taskLog: Logger) -> None:
         """
         Create copy of exporter for task instance
         :param taskName:
@@ -200,7 +199,8 @@ class ExportBroker(Thread):
             expModule = copy.copy(self.exports[exp])
             expModule.parcelSize = 0
             expModule.queueSize = 0
-            expModule.transformTasks = [(i, self._load_transform_script(i)) for i in taskCfg['handlers']]
+            expModule.handlersNew = [(i, self._load_transform_script(i)) for i in taskCfg['handlersNew']]
+            expModule.handlersDelete = [(i, self._load_transform_script(i)) for i in taskCfg['handlersDelete']]
             expModule.status = 'work'
             tmp[exp] = expModule
 
@@ -209,7 +209,7 @@ class ExportBroker(Thread):
         self.lock = False
         # sout('mount unlock', 'breeze')
 
-    def unmount_export(self, taskId: str) -> None:
+    def unmount_export(self, taskId: int) -> None:
         self.put(taskId, '--send--')
         for exp in self.taskExports[taskId].values():
             while exp.queueSize > 0:
@@ -226,12 +226,12 @@ class ExportBroker(Thread):
         self.lock = False
         # sout('unmount unlock', 'breeze')
 
-    def put(self, taskId: str, doc: Document, priority=5) -> None:
+    def put(self, taskId: int, doc: Union[Document, str], deleted=False, priority=5) -> None:
         """
 
         :param taskId:
         :param doc: Document or command '--send--'
-        :param export: only that set in task
+        :param deleted: flag for deleted Document
         :param priority:
         :return:
         """
@@ -257,10 +257,10 @@ class ExportBroker(Thread):
 
         self.lock = False
         # sout('put unlock', 'breeze')
-        self.workersQ.put((taskId, doc,))
+        self.workersQ.put((taskId, doc, deleted,))
 
     @staticmethod
-    def _load_transform_script(script: str) -> Callable[[Document, Dict[str,any]], Document]:
+    def _load_transform_script(script: str) -> Callable[[Document, Dict[str,any]], Union[Document, None]]:
         """
         Search scripts in path and compile for using in
         Factory module
@@ -288,16 +288,21 @@ class ExportBroker(Thread):
         except Exception as e:
             raise Exception(f'Fail import script: {e}')
 
-    def _pre_process(self, taskId: str, doc: Document) -> Document or None:
+    def _pre_process(self, taskId: int, doc: Document, deleted: bool) -> Document or None:
         taskLog = self.taskLoggers[taskId]
         taskLog.debug(f"Processing {doc.reference}")
         exportName = doc.export
 
-        for name, task in self.taskExports[taskId][exportName].transformTasks:
+        if deleted:
+            tasks = self.taskExports[taskId][exportName].handlersDelete
+        else:
+            tasks = self.taskExports[taskId][exportName].handlersNew
+
+        for name, task in tasks:
             try:
-                doc = task(doc, {'log': self.taskLoggers[taskId], 'put_new_doc': self._pre_process_put})
+                doc = task(doc, {'log': self.taskLoggers[taskId], 'put_new_doc': self._handler_create_document})
                 if not doc:
-                    taskLog.debug(f"Reject document by pre-task {name} ")
+                    taskLog.warning(f"Reject document by pre-task {name} ")
                     return
             except Exception as e:
                 taskLog.error(f"Pre-task {name}: {traceback.format_exc()}")
@@ -305,14 +310,17 @@ class ExportBroker(Thread):
         doc._preTasksDone = True
         return doc
 
-    def _pre_process_put(self, document: Document) -> None:
+    def _handler_create_document(self, document: Document, deleted=False) -> None:
         """
         Put Document from handler.
         It will added as new Document with all processing steps
+
+        :param document: lootnika Document
+        :param deleted: flag for deleted document
         """
         doc = copy.deepcopy(document)
         doc._preTasksDone = True
-        self.put(doc.taskId, doc)
+        self.put(doc.taskId, doc, deleted)
 
     def stop(self):
         self.log.debug("Stopping ExportBroker thread")
@@ -320,7 +328,7 @@ class ExportBroker(Thread):
             self.put(i, '--send--')
 
         for _ in self.workers:
-            self.workersQ.put(('', '--stop--',))
+            self.workersQ.put(('', '--stop--', False))
 
         self.workersLogging.put('--stop--')
 

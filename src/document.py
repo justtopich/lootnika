@@ -45,7 +45,7 @@ class Document:
     It's just json with header and body - header field "fields". "fields"
     contain all your fields and they are used for custom processing and calculating hash
     """
-    def __init__(self, taskId: str, taskName: str, reference: str, loootId: str, fields: dict):
+    def __init__(self, taskId: int, taskName: str, reference: str, loootId: str, fields: dict):
         """
         Creating document and his reference.
 
@@ -77,15 +77,6 @@ class Document:
             self.reference = self.reference.replace(f'@{k}@', f'{v}', -1)
         if '@' in self.reference:
             raise Exception(f"Missing the necessary @field@. Reference: {self.reference}")
-
-        # self.raw = {
-        #     'reference': self.reference,
-        #     'uuid': self.uuid,
-        #     'taskName': taskName,
-        #     'create_dtm': self.create_dtm,
-        #     'export': self.export,
-        #     'format': self.format,
-        #     'fields': self.fields}
 
     def get_hash(self) -> str:
         """
